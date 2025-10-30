@@ -107,6 +107,17 @@ function setupIpcHandlers(): void {
     return app.getPath(name as any);
   });
 
+  ipcMain.handle('update:quitAndInstall', () => {
+    try {
+      const { quitAndInstall } = require('./updater');
+      quitAndInstall();
+      return true;
+    } catch (error) {
+      log.error('Failed to quit and install:', error);
+      return false;
+    }
+  });
+
   setupDatabaseHandlers();
   setupFileHandlers();
   

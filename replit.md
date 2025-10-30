@@ -4,6 +4,21 @@
 Rehber360 is a comprehensive Turkish-language student guidance and management system for educational institutions. It offers tools for student tracking, counseling, risk assessment, behavioral monitoring, and academic performance analysis. A core feature is its AI-powered profile analysis, which generates standardized student profiles from diverse data. The system includes an AI Assistant for local, AI-powered student counseling, supporting OpenAI and Ollama (Llama 3.1) models. Built as a full-stack TypeScript application with React, Express.js, and SQLite, Rehber360 aims to drive data standardization and evidence-based interventions for student success.
 
 ## Recent Changes
+**Date: October 30, 2025**
+- **Electron Desktop Application - Core Infrastructure Completed (Task 2):**
+  - Created modular Electron architecture with 9 core files and 4 IPC handler modules
+  - Implemented logger system (electron-log) with file/console transports
+  - Built type-safe settings store (electron-store) for window state, theme, language, notifications
+  - Developed IPC handlers: database backup/restore, file operations, window controls, native notifications
+  - Created Turkish application menu with keyboard shortcuts (Ctrl+N, Ctrl+I, Ctrl+E, F11, etc.)
+  - Implemented system tray with minimize-to-tray support and quick access menu
+  - Integrated auto-updater (electron-updater) with automatic checks every 2 hours
+  - Enhanced main.ts: Express backend child process, port management (3000-9000), CSP security headers
+  - Expanded preload.ts: 50+ secure IPC methods exposed via contextBridge
+  - Fixed critical notification bug: replaced ipcMain.emit with shared createAndShowNotification helper
+  - All security best practices: nodeIntegration=false, contextIsolation=true, preload-only API exposure
+  - LSP: No errors, Build: Successful, Architect: Approved ✓
+
 **Date: October 29, 2025**
 - **Page Navigation Performance Optimizations:**
   - Implemented smart route prefetching that automatically loads likely next pages based on current location
@@ -74,6 +89,25 @@ Preferred communication style: Simple, everyday language.
 - **Build Process:** Two-stage build (client and server) using Vite.
 - **Deployment Target:** Replit VM, running `dist/server/production.mjs` on port 3000.
 - **Database:** File-based SQLite (`database.db`) with automatic backups and schema migrations.
+
+### Desktop Application (Electron)
+- **Technology Stack:** Electron, electron-log, electron-store, electron-updater, TypeScript.
+- **Architecture:** Modular design with separated IPC handlers (database, file, window, notifications).
+- **Security:** nodeIntegration=false, contextIsolation=true, CSP headers, preload-only API exposure.
+- **Features:**
+  - Express backend integration via child process with dynamic port allocation (3000-9000)
+  - Native notification system with user preferences and click handlers
+  - Database backup/restore with timestamp-based file management
+  - File operations: select, save, read, shell integration (open path, trash)
+  - Window controls: minimize, maximize, close, bounds persistence
+  - System tray with minimize-to-tray and quick navigation menu
+  - Turkish application menu with full keyboard shortcuts
+  - Auto-update system with progress tracking and user notifications
+  - Centralized logging (userData/logs/main.log)
+  - Type-safe settings store (window state, theme, language, notifications, backups)
+- **IPC Communication:** 50+ typed methods exposed via contextBridge for secure renderer-main interaction.
+- **Development:** `npm run electron:dev` builds TypeScript and launches Electron with dev server.
+- **Production:** `npm run electron:build` packages Windows installer (NSIS + Portable).
 
 ## External Dependencies
 

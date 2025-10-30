@@ -12,6 +12,7 @@ import {
   showErrorToast as displayErrorToast 
 } from "./error-handler";
 import { ApiError, isApiErrorResponse } from "../../types/api-types";
+import { getBackendUrl, isElectron, updateBackendUrlCache } from "../../utils/electron";
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
@@ -30,6 +31,10 @@ export interface ApiResponse<T> {
 }
 
 class ApiClient {
+  private baseUrl: string = '';
+  private initialized: boolean = false;
+  private initPromise: Promise<void> | null = null;
+
   private baseHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
   };
@@ -39,6 +44,62 @@ class ApiClient {
   constructor() {
     // Modern CSRF protection uses SameSite cookies
     // No need for manual CSRF token handling
+    
+    // Initialize base URL synchronously for web
+    if (!isElectron()) {
+      this.baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      this.initialized = true;
+    }
+  }
+
+  /**
+   * Initialize API client with backend URL
+   * Call this on app startup for Electron apps
+   */
+  async initialize(): Promise<void> {
+    if (this.initialized) return;
+    
+    // Prevent multiple simultaneous initialization
+    if (this.initPromise) {
+      return this.initPromise;
+    }
+
+    this.initPromise = (async () => {
+      try {
+        await updateBackendUrlCache();
+        this.baseUrl = await getBackendUrl();
+        this.initialized = true;
+      } catch (error) {
+        console.error('Failed to initialize API client:', error);
+        this.baseUrl = 'http://localhost:3000';
+        this.initialized = true;
+      }
+    })();
+
+    return this.initPromise;
+  }
+
+  /**
+   * Ensure client is initialized before making requests
+   */
+  private async ensureInitialized(): Promise<void> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+  }
+
+  /**
+   * Build full URL with base URL
+   */
+  private buildFullUrl(endpoint: string): string {
+    // If endpoint is already a full URL, return as-is
+    if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+      return endpoint;
+    }
+    
+    // Remove leading slash if present, baseUrl should not have trailing slash
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    return `${this.baseUrl}${cleanEndpoint}`;
   }
 
   async request<TResponse = unknown, TBody = unknown>(
@@ -46,6 +107,9 @@ class ApiClient {
     config: ApiRequestConfig<TBody> = {},
     isRetry = false
   ): Promise<TResponse> {
+    // Ensure API client is initialized (especially for Electron)
+    await this.ensureInitialized();
+
     const {
       method = 'GET',
       body,
@@ -70,6 +134,9 @@ class ApiClient {
     const controller = new AbortController();
     let timeoutId: NodeJS.Timeout | undefined;
 
+    // Build full URL with base URL
+    const fullUrl = this.buildFullUrl(endpoint);
+
     try {
       timeoutId = setTimeout(() => controller.abort(), timeout);
 
@@ -81,11 +148,11 @@ class ApiClient {
         signal: controller.signal,
       };
 
-      requestConfig = await this.interceptors.applyRequestInterceptors(requestConfig, endpoint);
+      requestConfig = await this.interceptors.applyRequestInterceptors(requestConfig, fullUrl);
 
-      let response = await fetch(endpoint, requestConfig);
+      let response = await fetch(fullUrl, requestConfig);
       
-      response = await this.interceptors.applyResponseInterceptors(response, endpoint);
+      response = await this.interceptors.applyResponseInterceptors(response, fullUrl);
 
       // Parse response
       const contentType = response.headers.get('content-type');
@@ -129,8 +196,8 @@ class ApiClient {
       }
 
       // Apply interceptors
-      await errorInterceptor(apiError, endpoint, method);
-      await this.interceptors.applyErrorInterceptors(apiError, endpoint, method);
+      await errorInterceptor(apiError, fullUrl, method);
+      await this.interceptors.applyErrorInterceptors(apiError, fullUrl, method);
       
       throw apiError;
     } finally {
