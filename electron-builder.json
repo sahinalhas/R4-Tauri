@@ -31,7 +31,7 @@
         "arch": ["x64"]
       }
     ],
-    "icon": "build/icon.ico",
+    "icon": "build/icon.png",
     "artifactName": "${productName}-Setup-${version}.${ext}",
     "publisherName": "Rehber360",
     "verifyUpdateCodeSignature": false
@@ -44,9 +44,9 @@
     "shortcutName": "Rehber360",
     "perMachine": false,
     "deleteAppDataOnUninstall": false,
-    "installerIcon": "build/icon.ico",
-    "uninstallerIcon": "build/icon.ico",
-    "installerHeader": "build/installerHeader.bmp",
+    "installerIcon": "build/icon.png",
+    "uninstallerIcon": "build/icon.png",
+    "installerHeader": "build/installerHeader.png",
     "language": "1055"
   },
   "portable": {
