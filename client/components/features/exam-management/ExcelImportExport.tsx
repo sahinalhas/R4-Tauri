@@ -18,7 +18,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { Progress } from '@/components/atoms/Progress';
-import type { ExamSession } from '../../../shared/types/exam-management.types';
+import type { ExamSession } from '@shared/types/exam-management.types';
 
 interface ExcelImportExportProps {
   sessions: ExamSession[];
