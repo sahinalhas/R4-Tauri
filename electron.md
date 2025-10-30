@@ -1058,7 +1058,7 @@ Görevler tamamlandıkça bu bölümü güncelleyin:
 
 - [x] 1. Proje kurulumu ✅ **Tamamlandı** (30 Ekim 2025)
   - ✅ Electron bağımlılıkları yüklendi (electron, electron-builder, electron-devtools-installer)
-  - ✅ Runtime bağımlılıkları eklendi (electron-is-dev, electron-log, electron-store)
+  - ✅ Runtime bağımlılıkları eklendi (electron-is-dev, electron-log, electron-store, electron-updater)
   - ✅ TypeScript tipleri eklendi (@types/electron-devtools-installer)
   - ✅ Development araçları kuruldu (concurrently, wait-on)
   - ✅ package.json güncellendi:
@@ -1078,20 +1078,67 @@ Görevler tamamlandıkça bu bölümü güncelleyin:
     - electron/types/electron.d.ts: TypeScript tip tanımları
   - ✅ Build süreci test edildi ve çalışıyor
   - ✅ Mimar tarafından onaylandı ✓
-- [ ] 2. Proje yapısı
-- [ ] 3. Main process
-- [ ] 4. Preload script
-- [ ] 5. Frontend entegrasyon
-- [ ] 6. Uygulama menüsü
-- [ ] 7. Sistem tepsisi
-- [ ] 8. Bildirimler
-- [ ] 9. Dosya işlemleri
-- [ ] 10. Kullanıcı ayarları
-- [ ] 11. Güvenlik
-- [ ] 12. Loglama
-- [ ] 13. Build yapılandırması
+
+- [x] 2. Proje yapısı düzenleme ✅ **Tamamlandı** (30 Ekim 2025)
+  - ✅ **Loglama sistemi (electron/logger.ts):**
+    - electron-log yapılandırması
+    - Dosya ve konsol transport'ları
+    - Log seviyeleri (info, warn, error, debug)
+    - Log dosya konumu: userData/logs/main.log
+  - ✅ **Kullanıcı ayarları (electron/store.ts):**
+    - electron-store yapılandırması
+    - Tip güvenli store schema (StoreSchema interface)
+    - Window bounds, tema, dil, bildirimler, backup ayarları
+    - Helper fonksiyonlar: getStoreValue, setStoreValue
+  - ✅ **IPC handler modülleri:**
+    - **electron/ipc/database.ts:** Veritabanı backup/restore, yedek listesi
+    - **electron/ipc/file.ts:** Dosya seçme, kaydetme, okuma, shell işlemleri
+    - **electron/ipc/window.ts:** Pencere kontrolleri (minimize, maximize, close, bounds)
+    - **electron/ipc/notifications.ts:** Native bildirimler ve ayarları
+  - ✅ **Menü sistemi (electron/menu.ts):**
+    - Türkçe uygulama menüsü (Dosya, Düzenle, Görünüm, Veritabanı, Yardım)
+    - Klavye kısayolları (Ctrl+N, Ctrl+I, Ctrl+E, F11, vb.)
+    - Developer tools menüsü (dev mode)
+    - IPC event'leri ile frontend entegrasyonu
+  - ✅ **Sistem tepsisi (electron/tray.ts):**
+    - Tray icon ve context menu
+    - Minimize to tray desteği
+    - Hızlı erişim menüsü (Ana Sayfa, Öğrenciler, Sınavlar, Raporlar)
+    - Balon bildirimleri (displayBalloon)
+  - ✅ **Auto-updater (electron/updater.ts):**
+    - electron-updater entegrasyonu
+    - Güncelleme kontrolü (5 saniye sonra + her 2 saatte bir)
+    - Update event'leri (available, downloaded, progress, error)
+    - quitAndInstall fonksiyonu
+  - ✅ **Main process genişletildi (electron/main.ts):**
+    - Express backend child process entegrasyonu
+    - Port yönetimi (3000-9000 arası rastgele)
+    - Tüm modüllerin import ve setup'ı
+    - Güvenlik politikası (CSP headers)
+    - Pencere durumu kaydetme/geri yükleme
+    - Lifecycle yönetimi (before-quit, window events)
+  - ✅ **Preload script genişletildi (electron/preload.ts):**
+    - 50+ IPC metodu expose edildi
+    - Dosya, veritabanı, bildirim, pencere API'leri
+    - Menu event listener'ları
+    - Update ve window event listener'ları
+  - ✅ **TypeScript tipleri (electron/types/electron.d.ts):**
+    - ElectronAPI interface (tam tip güvenliği)
+    - NotificationOptions, FileSelectOptions, FileSaveOptions
+    - UpdateInfo, UpdateProgress, BackupInfo
+    - Global Window tiplemesi
+  - ✅ **Build doğrulaması:**
+    - LSP hataları yok
+    - TypeScript build başarılı
+    - Modüler ve temiz kod yapısı
+
+- [ ] 3-5. Main process, Preload, Frontend entegrasyon (Görev 2'de tamamlandı)
+- [ ] 6-8. Menü, Tray, Bildirimler (Görev 2'de tamamlandı)
+- [ ] 9-10. Dosya işlemleri, Ayarlar (Görev 2'de tamamlandı)
+- [ ] 11-12. Güvenlik, Loglama (Görev 2'de tamamlandı)
+- [ ] 13. Build yapılandırması (Görev 1'de tamamlandı)
 - [ ] 14. İkonlar
-- [ ] 15. Auto-update
+- [ ] 15. Auto-update (Görev 2'de tamamlandı)
 - [ ] 16. Development ortamı
 - [ ] 17. Production build
 - [ ] 18. Testler
@@ -1101,3 +1148,15 @@ Görevler tamamlandıkça bu bölümü güncelleyin:
 ---
 
 **Son Güncelleme:** 30 Ekim 2025
+
+---
+
+## 🎯 Sıradaki Görevler
+
+Görev 2 tamamlandı. Sıradaki adımlar:
+
+1. **İkonlar (Görev 14):** Tray icon, app icon, installer görselleri
+2. **Development ortamı (Görev 16):** Dev workflow test ve optimizasyon
+3. **Frontend entegrasyon:** Electron API kullanımı (isElectron, getBackendUrl)
+4. **Production build (Görev 17):** Tam build testi ve paketleme
+5. **Deployment (Görev 19):** Release yapılandırması
