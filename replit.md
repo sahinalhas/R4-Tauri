@@ -5,6 +5,12 @@ Rehber360 is a comprehensive Turkish-language student guidance and management sy
 
 ## Recent Changes
 **Date: October 30, 2025**
+- **Güncelleme ve Yayınlama Stratejisi Dokümante Edildi:**
+  - Oluşturulan doküman: docs/GUNCELLEME_STRATEJISI.md
+  - Geliştirme akışı: Replit (web) ve lokal (desktop) paralel geliştirme
+  - Güncelleme süreci: Semantic versioning, GitHub Releases, otomatik güncelleme
+  - Auto-updater zaten kurulu ve çalışır (electron-updater, 2 saatte bir kontrol)
+  - Kod tabanı birleşik: Web ve desktop aynı kodu kullanır, değişiklikler otomatik yansır
 - **Electron Desktop Application - Core Infrastructure Completed (Task 2):**
   - Created modular Electron architecture with 9 core files and 4 IPC handler modules
   - Implemented logger system (electron-log) with file/console transports
