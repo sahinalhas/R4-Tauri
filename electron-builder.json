@@ -33,7 +33,6 @@
     ],
     "icon": "build/icon.png",
     "artifactName": "${productName}-Setup-${version}.${ext}",
-    "publisherName": "Rehber360",
     "verifyUpdateCodeSignature": false
   },
   "nsis": {
