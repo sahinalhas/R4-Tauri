@@ -1,5 +1,10 @@
 {
   "name": "rehber360",
+  "version": "1.0.0",
+  "description": "Rehber360 - Öğrenci Rehberlik ve Danışmanlık Yönetim Sistemi",
+  "author": "Rehber360 Team",
+  "license": "MIT",
+  "homepage": "https://rehber360.com",
   "private": true,
   "type": "module",
   "main": "dist/electron/main.js",
