@@ -8,6 +8,7 @@ pub mod notification;
 pub mod settings;
 pub mod file;
 pub mod export;
+pub mod migration;
 
 pub use auth::*;
 pub use student::*;
@@ -19,3 +20,4 @@ pub use notification::*;
 pub use settings::*;
 pub use file::*;
 pub use export::*;
+pub use migration::*;
