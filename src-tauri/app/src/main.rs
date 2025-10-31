@@ -220,6 +220,7 @@ async fn main() {
             auth::login,
             auth::logout,
             auth::get_current_user,
+            auth::create_initial_admin,
             // Student commands
             student::get_all_students,
             student::get_student,

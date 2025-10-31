@@ -1,33 +1,22 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Progress } from '@/components/ui/progress';
-import { Loader2, CheckCircle2, AlertCircle, Database, User, Sparkles, FileCheck } from 'lucide-react';
-import { toast } from 'sonner';
 
-type WizardStep = 'welcome' | 'database' | 'admin' | 'ai-provider' | 'complete';
+type WizardStep = 'welcome' | 'database' | 'admin' | 'complete';
 
 interface MigrationReport {
   success: boolean;
   students_migrated: number;
   counseling_sessions_migrated: number;
   academic_records_migrated: number;
-  behavior_records_migrated: number;
-  documents_migrated: number;
-  settings_migrated: number;
   errors: string[];
-  warnings: string[];
 }
 
 export function FirstRunWizard() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState<WizardStep>('welcome');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const [dbChoice, setDbChoice] = useState<'new' | 'migrate'>('new');
   const [electronDbPath, setElectronDbPath] = useState('');
@@ -38,73 +27,47 @@ export function FirstRunWizard() {
   const [adminName, setAdminName] = useState('');
   const [adminSurname, setAdminSurname] = useState('');
 
-  const [aiProvider, setAiProvider] = useState<'gemini' | 'openai' | 'ollama' | 'skip'>('gemini');
-  const [apiKey, setApiKey] = useState('');
+  const validatePassword = (pwd: string): string | null => {
+    if (pwd.length < 8) return 'En az 8 karakter gerekli';
+    if (!/[A-Z]/.test(pwd)) return 'En az bir büyük harf gerekli';
+    if (!/[a-z]/.test(pwd)) return 'En az bir küçük harf gerekli';
+    if (!/[0-9]/.test(pwd)) return 'En az bir rakam gerekli';
+    return null;
+  };
 
-  const steps: WizardStep[] = ['welcome', 'database', 'admin', 'ai-provider', 'complete'];
-  const currentStepIndex = steps.indexOf(currentStep);
-  const progress = ((currentStepIndex + 1) / steps.length) * 100;
+  const passwordError = adminPassword ? validatePassword(adminPassword) : null;
+  const isAdminFormValid = adminName.trim() && adminSurname.trim() && adminEmail.trim() && adminPassword && !passwordError;
 
   const detectElectronDb = async () => {
     try {
       const path = await invoke<string | null>('detect_electron_database');
       if (path) {
         setElectronDbPath(path);
-        toast.success('Eski veritabanı bulundu!', {
-          description: path
-        });
+        setError('');
       } else {
-        toast.info('Eski veritabanı bulunamadı', {
-          description: 'Yeni veritabanı oluşturabilirsiniz'
-        });
+        setError('Eski veritabanı bulunamadı');
       }
-    } catch (error) {
-      console.error('Error detecting Electron database:', error);
-    }
-  };
-
-  const validateElectronDb = async () => {
-    if (!electronDbPath) return false;
-    try {
-      const isValid = await invoke<boolean>('validate_electron_database', { dbPath: electronDbPath });
-      return isValid;
-    } catch (error) {
-      console.error('Error validating database:', error);
-      return false;
+    } catch (err) {
+      setError('Eski veritabanı bulunamadı');
     }
   };
 
   const migrateFromElectron = async () => {
     setLoading(true);
+    setError('');
     try {
-      const isValid = await validateElectronDb();
-      if (!isValid) {
-        toast.error('Geçersiz veritabanı', {
-          description: 'Seçilen dosya geçerli bir Rehber360 veritabanı değil'
-        });
-        setLoading(false);
-        return;
-      }
-
       const report = await invoke<MigrationReport>('migrate_from_electron', { 
         oldDbPath: electronDbPath 
       });
-
       setMigrationReport(report);
-
       if (report.success) {
-        toast.success('Veri aktarımı başarılı!', {
-          description: `${report.students_migrated} öğrenci, ${report.counseling_sessions_migrated} görüşme aktarıldı`
-        });
-        handleNext();
+        setError('');
+        setCurrentStep('complete');
       } else {
-        toast.error('Veri aktarımı başarısız', {
-          description: report.errors.join(', ')
-        });
+        setError(report.errors.join(', '));
       }
-    } catch (error) {
-      console.error('Migration error:', error);
-      toast.error('Veri aktarımı sırasında hata oluştu');
+    } catch (err) {
+      setError('Veri aktarımı sırasında hata oluştu: ' + String(err));
     } finally {
       setLoading(false);
     }
@@ -112,6 +75,7 @@ export function FirstRunWizard() {
 
   const createAdmin = async () => {
     setLoading(true);
+    setError('');
     try {
       await invoke('create_initial_admin', {
         email: adminEmail,
@@ -119,384 +83,401 @@ export function FirstRunWizard() {
         name: adminName,
         surname: adminSurname,
       });
-      toast.success('Yönetici hesabı oluşturuldu');
-      handleNext();
-    } catch (error) {
-      console.error('Admin creation error:', error);
-      toast.error('Hesap oluşturma hatası');
+      setError('');
+      setCurrentStep('complete');
+    } catch (err) {
+      setError('Hesap oluşturma hatası: ' + String(err));
     } finally {
       setLoading(false);
-    }
-  };
-
-  const saveAiSettings = async () => {
-    setLoading(true);
-    try {
-      if (aiProvider !== 'skip') {
-        await invoke('update_ai_provider', {
-          provider: aiProvider,
-          apiKey: apiKey || undefined,
-        });
-        toast.success('AI ayarları kaydedildi');
-      }
-      handleNext();
-    } catch (error) {
-      console.error('AI settings error:', error);
-      toast.error('AI ayarları kaydedilemedi');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleNext = () => {
-    const nextIndex = currentStepIndex + 1;
-    if (nextIndex < steps.length) {
-      setCurrentStep(steps[nextIndex]);
-    }
-  };
-
-  const handleBack = () => {
-    const prevIndex = currentStepIndex - 1;
-    if (prevIndex >= 0) {
-      setCurrentStep(steps[prevIndex]);
     }
   };
 
   const handleComplete = () => {
     localStorage.setItem('rehber360_first_run_completed', 'true');
-    toast.success('Kurulum tamamlandı! Hoş geldiniz! 🎉');
     navigate('/dashboard');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl shadow-2xl">
-        <CardHeader>
-          <div className="flex items-center justify-between mb-4">
-            <CardTitle className="text-2xl">Rehber360 Kurulum</CardTitle>
-            <div className="text-sm text-muted-foreground">
-              Adım {currentStepIndex + 1} / {steps.length}
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(to bottom right, #eff6ff, #eef2ff)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '2rem'
+    }}>
+      <div style={{
+        width: '100%',
+        maxWidth: '600px',
+        background: 'white',
+        borderRadius: '12px',
+        boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
+        padding: '2rem'
+      }}>
+        <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem' }}>
+          Rehber360 Kurulum
+        </h1>
+        
+        {error && (
+          <div style={{ 
+            background: '#fee2e2', 
+            color: '#991b1b', 
+            padding: '1rem', 
+            borderRadius: '8px',
+            marginBottom: '1rem'
+          }}>
+            {error}
+          </div>
+        )}
+
+        {currentStep === 'welcome' && (
+          <div style={{ textAlign: 'center', padding: '2rem' }}>
+            <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Hoş Geldiniz!</h2>
+            <p style={{ marginBottom: '2rem', color: '#6b7280' }}>
+              Modern, AI destekli öğrenci rehberlik sistemi
+            </p>
+            <ul style={{ textAlign: 'left', marginBottom: '2rem', listStyle: 'none', padding: 0 }}>
+              <li style={{ marginBottom: '0.5rem' }}>✓ AI destekli profil analizi</li>
+              <li style={{ marginBottom: '0.5rem' }}>✓ Kapsamlı öğrenci takibi</li>
+              <li style={{ marginBottom: '0.5rem' }}>✓ Detaylı raporlama</li>
+              <li style={{ marginBottom: '0.5rem' }}>✓ %93 daha küçük, %50 daha hızlı</li>
+            </ul>
+            <button
+              onClick={() => setCurrentStep('database')}
+              style={{
+                background: '#3b82f6',
+                color: 'white',
+                padding: '0.75rem 2rem',
+                borderRadius: '8px',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                fontWeight: '600'
+              }}
+            >
+              Kuruluma Başla
+            </button>
+          </div>
+        )}
+
+        {currentStep === 'database' && (
+          <div>
+            <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Veritabanı Kurulumu</h2>
+            
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'flex', alignItems: 'center', padding: '1rem', border: '1px solid #e5e7eb', borderRadius: '8px', marginBottom: '0.5rem', cursor: 'pointer' }}>
+                <input
+                  type="radio"
+                  checked={dbChoice === 'new'}
+                  onChange={() => setDbChoice('new')}
+                  style={{ marginRight: '0.5rem' }}
+                />
+                <div>
+                  <div style={{ fontWeight: '600' }}>Yeni Veritabanı</div>
+                  <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Temiz bir başlangıç yapın</div>
+                </div>
+              </label>
+
+              <label style={{ display: 'flex', alignItems: 'center', padding: '1rem', border: '1px solid #e5e7eb', borderRadius: '8px', cursor: 'pointer' }}>
+                <input
+                  type="radio"
+                  checked={dbChoice === 'migrate'}
+                  onChange={() => setDbChoice('migrate')}
+                  style={{ marginRight: '0.5rem' }}
+                />
+                <div>
+                  <div style={{ fontWeight: '600' }}>Eski Verilerimi Aktar</div>
+                  <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Electron'dan veri taşıyın</div>
+                </div>
+              </label>
+            </div>
+
+            {dbChoice === 'migrate' && (
+              <div style={{ marginTop: '1rem', padding: '1rem', background: '#f9fafb', borderRadius: '8px' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600' }}>
+                  Eski Veritabanı Yolu:
+                </label>
+                <input
+                  type="text"
+                  value={electronDbPath}
+                  onChange={(e) => setElectronDbPath(e.target.value)}
+                  placeholder="C:\Users\...\rehber360-electron\database.db"
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    marginBottom: '0.5rem'
+                  }}
+                />
+                <button
+                  onClick={detectElectronDb}
+                  style={{
+                    background: '#6b7280',
+                    color: 'white',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '6px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    marginRight: '0.5rem',
+                    marginBottom: '0.5rem'
+                  }}
+                >
+                  Otomatik Bul
+                </button>
+                <button
+                  onClick={migrateFromElectron}
+                  disabled={!electronDbPath || loading}
+                  style={{
+                    background: electronDbPath && !loading ? '#3b82f6' : '#d1d5db',
+                    color: 'white',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '6px',
+                    border: 'none',
+                    cursor: electronDbPath && !loading ? 'pointer' : 'not-allowed'
+                  }}
+                >
+                  {loading ? 'Aktarılıyor...' : 'Verileri Aktar'}
+                </button>
+                
+                {migrationReport && (
+                  <div style={{ marginTop: '1rem', padding: '1rem', background: 'white', borderRadius: '6px' }}>
+                    <div style={{ fontWeight: '600', marginBottom: '0.5rem', color: migrationReport.success ? '#059669' : '#dc2626' }}>
+                      {migrationReport.success ? '✓ Aktarım Başarılı' : '✗ Aktarım Başarısız'}
+                    </div>
+                    <div style={{ fontSize: '0.875rem' }}>
+                      <div>Öğrenci: {migrationReport.students_migrated}</div>
+                      <div>Görüşme: {migrationReport.counseling_sessions_migrated}</div>
+                      <div>Akademik Kayıt: {migrationReport.academic_records_migrated}</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.5rem' }}>
+              <button
+                onClick={() => setCurrentStep('welcome')}
+                style={{
+                  background: '#f3f4f6',
+                  color: '#374151',
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: '600'
+                }}
+              >
+                Geri
+              </button>
+              <button
+                onClick={() => {
+                  if (dbChoice === 'migrate' && migrationReport?.success) {
+                    setCurrentStep('complete');
+                  } else if (dbChoice === 'new') {
+                    setCurrentStep('admin');
+                  }
+                }}
+                disabled={dbChoice === 'migrate' && !migrationReport?.success}
+                style={{
+                  flex: 1,
+                  background: (dbChoice === 'migrate' && !migrationReport?.success) ? '#d1d5db' : '#3b82f6',
+                  color: 'white',
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: (dbChoice === 'migrate' && !migrationReport?.success) ? 'not-allowed' : 'pointer',
+                  fontWeight: '600'
+                }}
+              >
+                Devam Et
+              </button>
             </div>
           </div>
-          <Progress value={progress} className="h-2" />
-        </CardHeader>
+        )}
 
-        <CardContent className="space-y-6">
-          {currentStep === 'welcome' && (
-            <div className="text-center space-y-6 py-8">
-              <div className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center mx-auto">
-                <Sparkles className="w-10 h-10 text-white" />
-              </div>
-              <div>
-                <h2 className="text-3xl font-bold mb-2">Rehber360'a Hoş Geldiniz!</h2>
-                <p className="text-muted-foreground text-lg">
-                  Modern, AI destekli öğrenci rehberlik sistemi
-                </p>
-              </div>
-              <ul className="text-left space-y-2 max-w-md mx-auto">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-500" />
-                  <span>AI destekli profil analizi</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-500" />
-                  <span>Kapsamlı öğrenci takibi</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-500" />
-                  <span>Detaylı raporlama</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-500" />
-                  <span>%93 daha küçük, %50 daha hızlı</span>
-                </li>
-              </ul>
-              <Button size="lg" onClick={handleNext}>
-                Kuruluma Başla
-              </Button>
+        {currentStep === 'admin' && (
+          <div>
+            <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Yönetici Hesabı</h2>
+            <p style={{ marginBottom: '1rem', color: '#6b7280', fontSize: '0.875rem' }}>
+              İlk yönetici hesabınızı oluşturun
+            </p>
+
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600' }}>Ad:</label>
+              <input
+                type="text"
+                value={adminName}
+                onChange={(e) => setAdminName(e.target.value)}
+                placeholder="Ahmet"
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px'
+                }}
+              />
             </div>
-          )}
 
-          {currentStep === 'database' && (
-            <div className="space-y-6">
-              <div className="flex items-center gap-3">
-                <Database className="w-8 h-8 text-blue-500" />
-                <div>
-                  <h3 className="text-xl font-semibold">Veritabanı Kurulumu</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Yeni veritabanı oluşturun veya eski verilerinizi aktarın
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600' }}>Soyad:</label>
+              <input
+                type="text"
+                value={adminSurname}
+                onChange={(e) => setAdminSurname(e.target.value)}
+                placeholder="Yılmaz"
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px'
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600' }}>E-posta:</label>
+              <input
+                type="email"
+                value={adminEmail}
+                onChange={(e) => setAdminEmail(e.target.value)}
+                placeholder="rehber@okul.edu.tr"
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px'
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600' }}>Şifre:</label>
+              <input
+                type="password"
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+                placeholder="En az 8 karakter"
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px'
+                }}
+              />
+              {passwordError && adminPassword && (
+                <p style={{ fontSize: '0.75rem', color: '#dc2626', marginTop: '0.25rem' }}>
+                  {passwordError}
+                </p>
+              )}
+              {!passwordError && adminPassword && (
+                <p style={{ fontSize: '0.75rem', color: '#059669', marginTop: '0.25rem' }}>
+                  ✓ Güçlü şifre
+                </p>
+              )}
+              {!adminPassword && (
+                <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                  En az 8 karakter, büyük/küçük harf ve sayı içermelidir
+                </p>
+              )}
+            </div>
+
+            <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.5rem' }}>
+              <button
+                onClick={() => setCurrentStep('database')}
+                style={{
+                  background: '#f3f4f6',
+                  color: '#374151',
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: '600'
+                }}
+              >
+                Geri
+              </button>
+              <button
+                onClick={createAdmin}
+                disabled={!isAdminFormValid || loading}
+                style={{
+                  flex: 1,
+                  background: (!isAdminFormValid || loading) ? '#d1d5db' : '#3b82f6',
+                  color: 'white',
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: (!isAdminFormValid || loading) ? 'not-allowed' : 'pointer',
+                  fontWeight: '600'
+                }}
+              >
+                {loading ? 'Oluşturuluyor...' : 'Hesap Oluştur'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {currentStep === 'complete' && (
+          <div style={{ textAlign: 'center', padding: '2rem' }}>
+            <div style={{
+              width: '80px',
+              height: '80px',
+              background: '#10b981',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 1rem'
+            }}>
+              <span style={{ fontSize: '3rem', color: 'white' }}>✓</span>
+            </div>
+            <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Kurulum Tamamlandı!</h2>
+            <p style={{ marginBottom: '0.5rem', color: '#6b7280' }}>
+              Rehber360 kullanıma hazır
+            </p>
+            <div style={{ margin: '1.5rem auto', textAlign: 'left', maxWidth: '400px', padding: '1rem', background: '#f0fdf4', borderRadius: '8px' }}>
+              <p style={{ fontSize: '0.875rem', marginBottom: '0.5rem', color: '#059669', fontWeight: '600' }}>✓ Kurulum Başarılı</p>
+              <p style={{ fontSize: '0.875rem', marginBottom: '0.25rem' }}>• Veritabanı hazır</p>
+              {migrationReport && migrationReport.success && (
+                <>
+                  <p style={{ fontSize: '0.875rem', marginBottom: '0.25rem' }}>
+                    • {migrationReport.students_migrated} öğrenci aktarıldı
                   </p>
-                </div>
-              </div>
-
-              <RadioGroup value={dbChoice} onValueChange={(v) => setDbChoice(v as 'new' | 'migrate')}>
-                <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-accent cursor-pointer">
-                  <RadioGroupItem value="new" id="new" />
-                  <Label htmlFor="new" className="cursor-pointer flex-1">
-                    <div className="font-medium">Yeni Veritabanı</div>
-                    <div className="text-sm text-muted-foreground">Temiz bir başlangıç yapın</div>
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-accent cursor-pointer">
-                  <RadioGroupItem value="migrate" id="migrate" />
-                  <Label htmlFor="migrate" className="cursor-pointer flex-1">
-                    <div className="font-medium">Eski Verilerimi Aktar (Electron)</div>
-                    <div className="text-sm text-muted-foreground">Mevcut verilerinizi taşıyın</div>
-                  </Label>
-                </div>
-              </RadioGroup>
-
-              {dbChoice === 'migrate' && (
-                <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
-                  <div className="space-y-2">
-                    <Label htmlFor="db-path">Eski Veritabanı Yolu</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="db-path"
-                        value={electronDbPath}
-                        onChange={(e) => setElectronDbPath(e.target.value)}
-                        placeholder="C:\Users\...\rehber360-electron\database.db"
-                      />
-                      <Button variant="outline" onClick={detectElectronDb}>
-                        Otomatik Bul
-                      </Button>
-                    </div>
-                  </div>
-
-                  {migrationReport && (
-                    <div className="space-y-2 p-3 bg-background rounded-lg">
-                      <div className="font-medium flex items-center gap-2">
-                        {migrationReport.success ? (
-                          <CheckCircle2 className="w-5 h-5 text-green-500" />
-                        ) : (
-                          <AlertCircle className="w-5 h-5 text-red-500" />
-                        )}
-                        Aktarım Raporu
-                      </div>
-                      <div className="text-sm space-y-1">
-                        <div>Öğrenci: {migrationReport.students_migrated}</div>
-                        <div>Görüşme: {migrationReport.counseling_sessions_migrated}</div>
-                        <div>Akademik Kayıt: {migrationReport.academic_records_migrated}</div>
-                        <div>Davranış Kaydı: {migrationReport.behavior_records_migrated}</div>
-                        <div>Belge: {migrationReport.documents_migrated}</div>
-                      </div>
-                    </div>
+                  <p style={{ fontSize: '0.875rem', marginBottom: '0.25rem' }}>
+                    • {migrationReport.counseling_sessions_migrated} görüşme aktarıldı
+                  </p>
+                  <p style={{ fontSize: '0.875rem', marginBottom: '0.25rem' }}>
+                    • {migrationReport.academic_records_migrated} akademik kayıt aktarıldı
+                  </p>
+                  {migrationReport.errors.length > 0 && (
+                    <p style={{ fontSize: '0.75rem', marginTop: '0.5rem', color: '#dc2626' }}>
+                      Uyarı: Bazı veriler aktarılamadı
+                    </p>
                   )}
-
-                  <Button 
-                    onClick={migrateFromElectron} 
-                    disabled={!electronDbPath || loading}
-                    className="w-full"
-                  >
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Verileri Aktar
-                  </Button>
-                </div>
+                </>
               )}
-
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={handleBack}>Geri</Button>
-                <Button 
-                  onClick={handleNext} 
-                  disabled={dbChoice === 'migrate' && !migrationReport?.success}
-                  className="flex-1"
-                >
-                  Devam Et
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {currentStep === 'admin' && (
-            <div className="space-y-6">
-              <div className="flex items-center gap-3">
-                <User className="w-8 h-8 text-blue-500" />
-                <div>
-                  <h3 className="text-xl font-semibold">Yönetici Hesabı</h3>
-                  <p className="text-sm text-muted-foreground">
-                    İlk yönetici hesabınızı oluşturun
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Ad</Label>
-                    <Input
-                      id="name"
-                      value={adminName}
-                      onChange={(e) => setAdminName(e.target.value)}
-                      placeholder="Ahmet"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="surname">Soyad</Label>
-                    <Input
-                      id="surname"
-                      value={adminSurname}
-                      onChange={(e) => setAdminSurname(e.target.value)}
-                      placeholder="Yılmaz"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email">E-posta</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={adminEmail}
-                    onChange={(e) => setAdminEmail(e.target.value)}
-                    placeholder="rehber@okul.edu.tr"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="password">Şifre</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={adminPassword}
-                    onChange={(e) => setAdminPassword(e.target.value)}
-                    placeholder="Güçlü bir şifre belirleyin"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    En az 8 karakter, büyük/küçük harf ve sayı içermelidir
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={handleBack}>Geri</Button>
-                <Button 
-                  onClick={createAdmin}
-                  disabled={!adminEmail || !adminPassword || adminPassword.length < 8 || !adminName || !adminSurname || loading}
-                  className="flex-1"
-                >
-                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Hesap Oluştur
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {currentStep === 'ai-provider' && (
-            <div className="space-y-6">
-              <div className="flex items-center gap-3">
-                <Sparkles className="w-8 h-8 text-blue-500" />
-                <div>
-                  <h3 className="text-xl font-semibold">AI Sağlayıcı</h3>
-                  <p className="text-sm text-muted-foreground">
-                    AI destekli analiz için bir sağlayıcı seçin (sonra değiştirilebilir)
-                  </p>
-                </div>
-              </div>
-
-              <RadioGroup value={aiProvider} onValueChange={(v) => setAiProvider(v as any)}>
-                <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-accent cursor-pointer">
-                  <RadioGroupItem value="gemini" id="gemini" />
-                  <Label htmlFor="gemini" className="cursor-pointer flex-1">
-                    <div className="font-medium">Google Gemini (Önerilen)</div>
-                    <div className="text-sm text-muted-foreground">Ücretsiz kota yüksek, hızlı</div>
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-accent cursor-pointer">
-                  <RadioGroupItem value="openai" id="openai" />
-                  <Label htmlFor="openai" className="cursor-pointer flex-1">
-                    <div className="font-medium">OpenAI (GPT-4)</div>
-                    <div className="text-sm text-muted-foreground">En güçlü, ücretli</div>
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-accent cursor-pointer">
-                  <RadioGroupItem value="ollama" id="ollama" />
-                  <Label htmlFor="ollama" className="cursor-pointer flex-1">
-                    <div className="font-medium">Ollama (Lokal)</div>
-                    <div className="text-sm text-muted-foreground">%100 gizli, kurulum gerektirir</div>
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-accent cursor-pointer">
-                  <RadioGroupItem value="skip" id="skip" />
-                  <Label htmlFor="skip" className="cursor-pointer flex-1">
-                    <div className="font-medium">Şimdi Atlansın</div>
-                    <div className="text-sm text-muted-foreground">Daha sonra ayarlayın</div>
-                  </Label>
-                </div>
-              </RadioGroup>
-
-              {aiProvider !== 'skip' && aiProvider !== 'ollama' && (
-                <div className="space-y-2">
-                  <Label htmlFor="api-key">API Anahtarı</Label>
-                  <Input
-                    id="api-key"
-                    type="password"
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    placeholder={aiProvider === 'gemini' ? 'AIza...' : 'sk-...'}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {aiProvider === 'gemini' ? (
-                      <a href="https://ai.google.dev" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                        ai.google.dev
-                      </a>
-                    ) : (
-                      <a href="https://platform.openai.com" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                        platform.openai.com
-                      </a>
-                    )}
-                    {' '}adresinden ücretsiz API anahtarı alabilirsiniz
-                  </p>
-                </div>
+              {!migrationReport && (
+                <p style={{ fontSize: '0.875rem', marginBottom: '0.25rem' }}>• Yönetici hesabı oluşturuldu</p>
               )}
-
-              {aiProvider === 'ollama' && (
-                <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-950">
-                  <p className="text-sm">
-                    <strong>Ollama kurulumu:</strong><br />
-                    1. <a href="https://ollama.ai" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">ollama.ai</a> adresinden indirin<br />
-                    2. Terminal: <code className="bg-muted px-1 rounded">ollama pull llama3.1</code><br />
-                    3. Rehber360 otomatik olarak bağlanacak
-                  </p>
-                </div>
-              )}
-
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={handleBack}>Geri</Button>
-                <Button 
-                  onClick={saveAiSettings}
-                  disabled={loading || (aiProvider !== 'skip' && aiProvider !== 'ollama' && !apiKey)}
-                  className="flex-1"
-                >
-                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Devam Et
-                </Button>
-              </div>
             </div>
-          )}
-
-          {currentStep === 'complete' && (
-            <div className="text-center space-y-6 py-8">
-              <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto">
-                <FileCheck className="w-10 h-10 text-white" />
-              </div>
-              <div>
-                <h2 className="text-3xl font-bold mb-2">Kurulum Tamamlandı!</h2>
-                <p className="text-muted-foreground text-lg">
-                  Rehber360 kullanıma hazır
-                </p>
-              </div>
-              <div className="space-y-2 text-left max-w-md mx-auto text-sm">
-                <p>✅ Veritabanı hazır</p>
-                <p>✅ Yönetici hesabı oluşturuldu</p>
-                <p>✅ AI ayarları yapılandırıldı</p>
-              </div>
-              <Button size="lg" onClick={handleComplete}>
-                Rehber360'ı Başlat
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            <button
+              onClick={handleComplete}
+              style={{
+                background: '#3b82f6',
+                color: 'white',
+                padding: '0.75rem 2rem',
+                borderRadius: '8px',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                fontWeight: '600'
+              }}
+            >
+              Rehber360'ı Başlat
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
