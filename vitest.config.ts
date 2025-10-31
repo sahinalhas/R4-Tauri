@@ -9,7 +9,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./test/setup.ts'],
     include: ['**/*.{test,spec}.{ts,tsx}'],
-    exclude: ['node_modules', 'dist', 'build', '.replit', 'server/**', '.cache/**', '**/node_modules/**'],
+    exclude: ['node_modules', 'dist', 'build', 'src-tauri/target', '.cache/**', '**/node_modules/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
@@ -18,7 +18,7 @@ export default defineConfig({
         'node_modules/',
         'dist/',
         'test/',
-        'server/**',
+        'src-tauri/**',
         '**/*.d.ts',
         '**/*.config.*',
         '**/mockData',

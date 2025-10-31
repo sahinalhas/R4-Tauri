@@ -2,7 +2,7 @@
 
 ## 🏗️ Architecture Overview
 
-Rehber360 is being migrated from Electron to Tauri for a modern, lightweight desktop application. The project uses a Rust workspace structure:
+Rehber360 is a **Tauri-based desktop application** (migrated from Electron). The project uses a Rust workspace structure with a hybrid frontend approach:
 
 ```
 src-tauri/
@@ -13,8 +13,28 @@ src-tauri/
 
 ### Why This Structure?
 
-- **`rehber360-core`**: Pure Rust library with business logic, can be tested/developed in Replit without GUI dependencies
-- **`rehber360-app`**: Tauri desktop wrapper, requires local development environment with GUI libraries
+- **`rehber360-core`**: Pure Rust library with business logic, database, and services
+- **`rehber360-app`**: Tauri desktop application shell
+- **Frontend**: React + TypeScript with Tauri API client
+  - **Desktop-only**: Uses Tauri Commands (Rust backend via `invoke`)
+
+### Transport Layer Architecture
+
+**Desktop-Only Application**: Frontend uses Tauri Commands exclusively.
+
+```
+Frontend (React)
+    ↓
+API Client
+    ↓
+Tauri Transport (invoke)
+    ↓
+Rust Backend Commands (85+)
+    ↓
+SQLite Database
+```
+
+**Platform Detection**: Verifies `window.__TAURI__` at runtime. Shows error if Tauri not detected.
 
 ## 🚀 Development Environments
 

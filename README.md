@@ -110,15 +110,19 @@ Rehber360, eğitim kurumları için geliştirilmiş kapsamlı bir öğrenci rehb
 - **XLSX** - Excel import/export
 - **jsPDF** - PDF rapor oluşturma
 
+## 🖥️ Platform
+
+**Tauri Desktop Application** - Cross-platform native desktop app for Windows, macOS, and Linux.
+
 ## 📦 Kurulum
 
 ### Gereksinimler
 - **Node.js 18+** - Frontend build için
-- **Rust** - Tauri backend için
+- **Rust 1.70+** - Tauri backend için
 - **Platform-specific dependencies**:
-  - Windows: Visual Studio C++ Build Tools
-  - macOS: Xcode Command Line Tools
-  - Linux: GTK, WebKit, libayatana-appindicator
+  - **Windows**: Visual Studio C++ Build Tools, WebView2
+  - **macOS**: Xcode Command Line Tools
+  - **Linux**: GTK3, WebKit2GTK, libayatana-appindicator3
 
 ### Hızlı Başlangıç
 
@@ -149,8 +153,10 @@ Rehber360, eğitim kurumları için geliştirilmiş kapsamlı bir öğrenci rehb
 
 5. **Development Modunda Çalıştır**
    ```bash
-   npm run tauri:dev
+   npm run dev
    ```
+   
+   > **Not**: Replit ortamında GUI build mümkün değil. Local (Windows/macOS/Linux) ortamda çalıştırın.
 
 6. **İlk Kullanıcıyı Oluşturun**
    - Uygulama açılınca `/register` sayfasından ilk admin hesabını oluşturun

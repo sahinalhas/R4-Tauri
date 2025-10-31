@@ -309,10 +309,6 @@ async fn main() {
             export::import_database_json,
             export::export_students_csv,
             export::get_export_statistics,
-            // Migration commands
-            migration::detect_electron_database,
-            migration::migrate_from_electron,
-            migration::validate_electron_database,
         ])
         .build(tauri::generate_context!())
         .expect("error building tauri application")

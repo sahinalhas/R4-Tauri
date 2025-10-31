@@ -1,25 +1,20 @@
-import "dotenv/config";
-import { defineConfig, Plugin } from "vite";
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { createServer } from "./server";
 
+// Tauri Desktop Application - Vite Configuration
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "0.0.0.0",
+    host: "localhost",
     port: 5000,
-    allowedHosts: true,
-    hmr: {
-      clientPort: 443,
-      protocol: 'wss',
-      host: process.env.REPLIT_DEV_DOMAIN || 'localhost'
-    },
+    strictPort: true,
     fs: {
       allow: [".", "./client", "./shared"],
-      deny: [".env", ".env.*", "*.{crt,pem}", "**/.git/**", "server/**"],
     },
   },
+  clearScreen: false,
+  envPrefix: ["VITE_", "TAURI_"],
   build: {
     outDir: "dist/spa",
     minify: mode === 'production' ? 'esbuild' : false,
@@ -107,7 +102,6 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    expressPlugin(),
   ],
   resolve: {
     alias: {
@@ -117,59 +111,3 @@ export default defineConfig(({ mode }) => ({
     },
   },
 }));
-
-function expressPlugin(): Plugin {
-  return {
-    name: "express-plugin",
-    apply: "serve", // Only apply during development (serve mode)
-    configureServer(server) {
-      // Lazy-load Express app only when a request comes in
-      let expressApp: any = null;
-      let isInitializing = false;
-      
-      server.middlewares.use(async (req, res, next) => {
-        // Skip initialization for Vite's internal requests
-        if (req.url?.startsWith('/@') || req.url?.includes('node_modules')) {
-          return next();
-        }
-        
-        if (!expressApp && !isInitializing) {
-          isInitializing = true;
-          try {
-            const { createServer } = await import('./server/index.js');
-            expressApp = createServer();
-            
-            // Start schedulers after Express app is ready
-            Promise.all([
-              import('./server/features/analytics/services/analytics-scheduler.service.js')
-                .then(({ startAnalyticsScheduler }) => startAnalyticsScheduler()),
-              import('./server/features/counseling-sessions/services/auto-complete-scheduler.service.js')
-                .then(({ startAutoCompleteScheduler }) => startAutoCompleteScheduler()),
-              import('./server/services/daily-action-plan-scheduler.service.js')
-                .then(({ startDailyActionPlanScheduler }) => startDailyActionPlanScheduler())
-            ]).catch((error) => {
-              console.error('Failed to start schedulers:', error);
-            });
-          } catch (error) {
-            console.error('Failed to initialize Express app:', error);
-            isInitializing = false;
-            return next();
-          }
-        }
-        
-        if (expressApp) {
-          expressApp(req, res, next);
-        } else {
-          // Still initializing, wait a bit
-          setTimeout(() => {
-            if (expressApp) {
-              expressApp(req, res, next);
-            } else {
-              next();
-            }
-          }, 100);
-        }
-      });
-    },
-  };
-}

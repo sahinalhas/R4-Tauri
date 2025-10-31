@@ -77,38 +77,35 @@ cd ..
 
 ## Development Workflow
 
-### Web Development (No Tauri)
+### ⚠️ Web Development Mode (Not Supported)
 
-Fastest iteration for frontend-only changes:
+**Important**: This is a **desktop-only application**. Web mode is not supported because:
+- ❌ No backend API available (Express removed)
+- ❌ Database requires Tauri backend
+- ❌ All features require desktop environment
 
-```bash
-npm run dev
-```
+Running `npm run dev` will open a browser but **features won't work**. Use Tauri desktop mode instead.
 
-- Opens: `http://localhost:5000`
-- Hot reload enabled
-- Backend: Express.js server
-- Database: SQLite (local)
-- No desktop features (tray, notifications, etc.)
+### Tauri Desktop Mode (Recommended)
 
-### Tauri Development (Desktop App)
-
-Full desktop app with native features:
+Full desktop app with all features:
 
 ```bash
 npm run tauri:dev
 ```
 
-- Opens: Tauri window (desktop app)
+- Opens: Tauri window (native desktop app)
 - Hot reload enabled (frontend only)
-- Backend: Tauri Rust backend
-- Database: SQLite (Tauri app data directory)
-- Full desktop features enabled
+- **Mode**: Desktop (uses Tauri Commands via invoke)
+- **Backend**: Rust Tauri backend (85+ commands)
+- **Database**: SQLite via SQLx (app data directory)
+- **Features**: All desktop features enabled (tray, native notifications, window management, etc.)
 
 **Important**:
-- Rust changes require restart
-- Frontend changes hot reload
-- First run is slow (Rust compilation)
+- Rust backend changes require full restart
+- Frontend changes hot reload automatically
+- First run is slow (5-10 min Rust compilation)
+- **Platform detection**: Frontend auto-detects Tauri and uses appropriate transport layer
 
 ---
 

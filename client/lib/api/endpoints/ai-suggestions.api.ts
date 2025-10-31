@@ -9,7 +9,7 @@ import type {
   ReviewSuggestionRequest,
   SuggestionFilters,
   SuggestionStats
-} from '../../../shared/types/ai-suggestion.types';
+} from '@/types/ai-suggestion.types';
 import { apiClient, createApiHandler } from '../core/client';
 import { AI_SUGGESTIONS_ENDPOINTS, buildQueryParams } from '../../constants/api-endpoints';
 

@@ -603,21 +603,36 @@ async fn call_openai_api(prompt: String, api_key: String) -> Result<String, reqw
 - [x] Conditional Tauri import (desktop vs web browser)
 - [x] Mock implementation for development without Tauri
 
-**Not:**
-- React Query hooks zaten mevcut (Express API'yi kullanıyor)
-- Desktop build sırasında bu hooks'lar Tauri API'yi kullanacak şekilde değiştirilebilir
-- Local geliştirme ortamında test edilecek
+**Önemli Not:**
+- React Query hooks değişiklik gerektirmedi (zaten apiClient kullanıyor)
+- apiClient artık **desktop-only** (sadece Tauri)
+- Endpoint dosyaları değişiklik gerektirmedi
+- **Web mode kaldırıldı**: Backend olmadığı için gereksiz
+- HTTP transport tamamen silindi (~100 satır temizlendi)
+- Local ortamda `npm run tauri:dev` ile test edilecek
 
-## 🎨 FAZ 4 (DEVAM): Frontend Entegrasyonu (Gün 3)
+## ✅ FAZ 4: Frontend Entegrasyonu - TAMAMLANDI
 
-### 4.1. Tauri API Client Oluşturma
-**Dosya:** `client/src/services/tauri-api.ts`
+### 4.1. Desktop-Only Transport Layer
+**Durum**: Tamamlandı - Frontend %100 Tauri kullanıyor (web mode kaldırıldı)
 
-**Görevler:**
-- [ ] Mevcut axios tabanlı API client'i Tauri invoke'a dönüştür
-- [ ] Type-safe wrapper fonksiyonlar
-- [ ] Error handling ve retry logic
-- [ ] Loading states
+**Tamamlanan Görevler:**
+- [x] Platform detection utility (`client/lib/utils/platform.ts`)
+- [x] **Desktop-only transport layer** (`client/lib/api/core/transport.ts`)
+  - Sadece Tauri Transport (invoke)
+  - HTTP fallback tamamen kaldırıldı (gereksiz)
+- [x] API Client refactor (`client/lib/api/core/client.ts`)
+  - Desktop-only yaklaşım (web mode desteklenmiyor)
+  - Tauri yoksa açık hata mesajları
+  - Error handling ve interceptor'lar korundu
+- [x] Endpoint → Tauri Command mapping (40+ pattern)
+  - Explicit mappings for common patterns
+  - Intelligent parameter extraction (student_id, user_id, session_id)
+  - Query parameter support
+  - Automatic fallback (snake_case conversion)
+- [x] Type safety korundu
+- [x] Toast notifications ve error handling korundu
+- [x] **Basitleştirme**: ~100 satır gereksiz kod kaldırıldı
 
 **Örnek implement:**
 ```typescript

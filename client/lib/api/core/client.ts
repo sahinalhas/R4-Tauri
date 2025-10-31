@@ -12,6 +12,8 @@ import {
   showErrorToast as displayErrorToast 
 } from "./error-handler";
 import { ApiError, isApiErrorResponse } from "../../types/api-types";
+import { transport, TransportConfig } from "./transport";
+import { isDesktopMode } from "@/lib/utils/platform";
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
@@ -30,33 +32,23 @@ export interface ApiResponse<T> {
 }
 
 class ApiClient {
-  private baseUrl: string;
-
-  private baseHeaders: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-
   private interceptors = new InterceptorManager();
+  private useTransport: boolean;
 
   constructor() {
-    // Modern CSRF protection uses SameSite cookies
-    // No need for manual CSRF token handling
-    this.baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    // Desktop-only application
+    this.useTransport = true;
+    
+    // Verify Tauri is available
+    if (!isDesktopMode()) {
+      console.error('[ApiClient] ERROR: This is a Tauri desktop application.');
+      console.error('[ApiClient] Please run: npm run tauri:dev');
+      console.error('[ApiClient] Web mode is not supported (no backend available).');
+    } else {
+      console.log('[ApiClient] ✓ Tauri desktop mode initialized');
+    }
   }
 
-  /**
-   * Build full URL with base URL
-   */
-  private buildFullUrl(endpoint: string): string {
-    // If endpoint is already a full URL, return as-is
-    if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
-      return endpoint;
-    }
-    
-    // Remove leading slash if present, baseUrl should not have trailing slash
-    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-    return `${this.baseUrl}${cleanEndpoint}`;
-  }
 
   async request<TResponse = unknown, TBody = unknown>(
     endpoint: string,
@@ -84,61 +76,35 @@ class ApiClient {
       errorDescription,
     };
 
-    const errorInterceptor = createDefaultErrorInterceptor(toastConfig);
-    const controller = new AbortController();
-    let timeoutId: NodeJS.Timeout | undefined;
+    // Desktop-only application - always use Tauri transport
+    return this.requestViaTransport<TResponse, TBody>(
+      endpoint,
+      { method, body, headers, timeout },
+      toastConfig
+    );
+  }
 
-    // Build full URL with base URL
-    const fullUrl = this.buildFullUrl(endpoint);
-
+  /**
+   * Request via transport layer (Tauri desktop mode)
+   */
+  private async requestViaTransport<TResponse = unknown, TBody = unknown>(
+    endpoint: string,
+    config: TransportConfig,
+    toastConfig: ToastConfig
+  ): Promise<TResponse> {
     try {
-      timeoutId = setTimeout(() => controller.abort(), timeout);
-
-      let requestConfig: RequestInit = {
-        method,
-        headers: { ...this.baseHeaders, ...headers },
-        body: body ? JSON.stringify(body) : undefined,
-        credentials: 'include', // Required for SameSite cookies to work
-        signal: controller.signal,
-      };
-
-      requestConfig = await this.interceptors.applyRequestInterceptors(requestConfig, fullUrl);
-
-      let response = await fetch(fullUrl, requestConfig);
-      
-      response = await this.interceptors.applyResponseInterceptors(response, fullUrl);
-
-      // Parse response
-      const contentType = response.headers.get('content-type');
-      const data = contentType?.includes('application/json')
-        ? await response.json().catch(() => ({}))
-        : await response.text();
-
-      // Handle error responses
-      if (!response.ok) {
-        const apiError = parseApiError(response, data);
-        throw apiError;
-      }
-
-      // Check for API error format even in 200 responses
-      if (typeof data === 'object' && data !== null && isApiErrorResponse(data)) {
-        const apiError = parseApiError(response, data);
-        throw apiError;
-      }
+      const data = await transport.request<TResponse>(endpoint, config);
 
       if (toastConfig.showSuccessToast && toastConfig.successMessage) {
         toast.success(toastConfig.successMessage);
       }
 
-      return data as TResponse;
+      return data;
     } catch (error) {
-      
-      // Handle as ApiError or convert to ApiError
       const apiError = error instanceof Error && 'code' in error
         ? error as ApiError
         : handleNetworkError(error as Error);
 
-      // Show error toast if configured
       if (toastConfig.showErrorToast) {
         if (toastConfig.errorMessage) {
           toast.error(toastConfig.errorMessage, {
@@ -149,15 +115,10 @@ class ApiClient {
         }
       }
 
-      // Apply interceptors
-      await errorInterceptor(apiError, fullUrl, method);
-      await this.interceptors.applyErrorInterceptors(apiError, fullUrl, method);
-      
       throw apiError;
-    } finally {
-      clearTimeout(timeoutId);
     }
   }
+
 
   getInterceptors(): InterceptorManager {
     return this.interceptors;

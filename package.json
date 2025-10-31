@@ -11,11 +11,9 @@
     "prismjs": "^1.30.0"
   },
   "scripts": {
-    "dev": "vite",
-    "tauri:dev": "cargo tauri dev",
-    "tauri:build": "cargo tauri build",
-    "build": "vite build",
-    "build:tauri": "vite build && cargo tauri build",
+    "dev": "cargo tauri dev",
+    "build": "cargo tauri build",
+    "build:frontend": "vite build",
     "test": "vitest --run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
