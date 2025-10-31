@@ -4,7 +4,7 @@
 mod commands;
 
 use log::{info, error};
-use commands::{auth, student, counseling, academic, ai, survey, notification, settings, file};
+use commands::{auth, student, counseling, academic, ai, survey, notification, settings, file, export};
 use rehber360_core::database;
 use tauri::{
     Manager, RunEvent, WindowEvent,
@@ -303,6 +303,11 @@ async fn main() {
             file::delete_file,
             file::get_file_list,
             file::open_file_in_explorer,
+            // Export/Import commands
+            export::export_database_json,
+            export::import_database_json,
+            export::export_students_csv,
+            export::get_export_statistics,
         ])
         .build(tauri::generate_context!())
         .expect("error building tauri application")

@@ -7,6 +7,7 @@ pub mod survey;
 pub mod notification;
 pub mod settings;
 pub mod file;
+pub mod export;
 
 pub use auth::*;
 pub use student::*;
@@ -17,3 +18,4 @@ pub use survey::*;
 pub use notification::*;
 pub use settings::*;
 pub use file::*;
+pub use export::*;
