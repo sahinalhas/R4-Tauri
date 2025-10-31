@@ -260,12 +260,12 @@ Rehber360, eğitim kurumları için geliştirilmiş kapsamlı bir öğrenci rehb
 
 **Development Build:**
 ```bash
-npm run tauri:dev
+npm run dev
 ```
 
 **Production Build:**
 ```bash
-npm run tauri:build
+npm run build
 ```
 
 Build edilen dosyalar:
@@ -324,19 +324,18 @@ Kapsamlı dokümantasyon için **[docs/](./docs/README.md)** dizinine bakın.
 ### 📖 Guides
 - **[Setup Guide](./docs/guides/setup.md)** - Installation and configuration
 - **[Development Guide](./docs/guides/development.md)** - Development workflow and best practices
-- **[Deployment Guide](./docs/guides/deployment.md)** - Replit, VPS, and Docker deployment
 - **[Testing Guide](./docs/guides/testing.md)** - Unit, integration, and component testing
 - **[Contributing Guide](./docs/guides/contributing.md)** - How to contribute
 
 ### 📝 Architectural Decision Records (ADR)
-- **[ADR-001](./docs/ADR/001-feature-based-architecture.md)** - Feature-based backend architecture
+- **[ADR-001](./docs/ADR/001-tauri-desktop-architecture.md)** - Tauri desktop architecture choice
 - **[ADR-002](./docs/ADR/002-sqlite-database-choice.md)** - SQLite as primary database
-- **[ADR-003](./docs/ADR/003-session-based-authentication.md)** - Session-based auth over JWT
+- **[ADR-003](./docs/ADR/003-session-based-authentication.md)** - Session-based auth via Tauri Store
 - **[ADR-004](./docs/ADR/004-react-query-state-management.md)** - React Query for state management
 - **[ADR-005](./docs/ADR/005-atomic-design-pattern.md)** - Atomic design pattern for components
 
 ### 📁 In-Code Documentation
-- **Feature READMEs**: `server/features/` - Each feature module has its own README
+- **Rust Commands**: `src-tauri/app/src/commands/` - Tauri backend commands
 - **Component Docs**: `client/components/` - JSDoc comments for components
 - **Type Definitions**: `shared/types/` - TypeScript interfaces and types
 
@@ -364,11 +363,13 @@ Bu proje özel bir eğitim projesidir. Ticari kullanım için lütfen iletişime
 
 ### Proje Yapısı
 ```
-/client         - React frontend
-/src-tauri      - Rust backend (Tauri)
-/shared         - Ortak tipler ve constants
-/public         - Static dosyalar
-/src            - TypeScript feature modules
+/client         - React frontend (UI components, pages, hooks)
+/src-tauri      - Rust backend (Tauri commands, database, migrations)
+/shared         - Shared TypeScript types and constants
+/public         - Static assets (images, fonts)
+/src            - Frontend feature modules (TypeScript)
+/docs           - Documentation
+/test           - Test utilities and fixtures
 ```
 
 ### Kod Standartları
@@ -406,13 +407,11 @@ npm run test:e2e
 
 ## 🎯 Roadmap
 
-- [ ] PWA desteği (service worker aktif)
-- [ ] Push notifications
 - [ ] Real-time collaboration
 - [ ] Advanced ML modelleri
-- [ ] Mobil uygulama (React Native)
 - [ ] Multi-tenant sistem
 - [ ] Advanced reporting engine
+- [ ] Cross-platform installer improvements
 
 ## 🏆 Özellikler
 
