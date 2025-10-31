@@ -1,9 +1,14 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import { fileURLToPath } from "url";
 
 // Tauri Desktop Application - Vite Configuration
 // https://vitejs.dev/config/
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 export default defineConfig(({ mode }) => ({
   server: {
     host: "localhost",
@@ -24,7 +29,7 @@ export default defineConfig(({ mode }) => ({
     assetsInlineLimit: 4096,
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
+        manualChunks: (id: string) => {
           if (id.includes('node_modules')) {
             if (id.includes('react') || id.includes('react-dom')) {
               return 'vendor-react-core';
@@ -82,7 +87,7 @@ export default defineConfig(({ mode }) => ({
             }
           }
         },
-        assetFileNames: (assetInfo) => {
+        assetFileNames: (assetInfo: { name?: string }) => {
           const info = assetInfo.name?.split('.');
           const ext = info?.[info.length - 1];
           if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(ext || '')) {
