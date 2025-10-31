@@ -4,6 +4,20 @@
 Rehber360 is a comprehensive Turkish-language student guidance and management system for educational institutions. It offers tools for student tracking, counseling, risk assessment, behavioral monitoring, and academic performance analysis. A core feature is its AI-powered profile analysis, which generates standardized student profiles from diverse data. The system includes an AI Assistant for local, AI-powered student counseling, supporting OpenAI and Ollama (Llama 3.1) models. Built as a full-stack TypeScript application with React, Express.js, and SQLite, Rehber360 aims to drive data standardization and evidence-based interventions for student success.
 
 ## Recent Changes
+**Date: October 31, 2025**
+- **Tauri Migration - FAZ 1-4 Tamamlandı:**
+  - ✅ Workspace infrastructure (core + app crates)
+  - ✅ Database layer (SQLx, 8 migrations, 9 models, 8 repositories)
+  - ✅ 85+ Tauri commands (auth, students, counseling, academic, AI, surveys, notifications, settings, files)
+  - ✅ AI Services integration (OpenAI, Gemini, Ollama HTTP clients)
+  - ✅ Settings/Config management system
+  - ✅ File operations with security hardening
+  - ✅ Type-safe frontend API client (lazy Tauri loading)
+  - 🔒 **Security:** Path traversal protection implemented (UUID filenames, strict validation, sandbox)
+  - ⚠️ **Security Note:** API keys in plaintext for development - production requires Tauri Secure Storage (documented in SECURITY_NOTES.md)
+  - 📖 **Documentation:** DEVELOPMENT.md and SECURITY_NOTES.md created
+  - 🚧 **Next:** Native desktop features (system tray, notifications), production security hardening
+
 **Date: October 30, 2025**
 - **Güncelleme ve Yayınlama Stratejisi Dokümante Edildi:**
   - Oluşturulan doküman: docs/GUNCELLEME_STRATEJISI.md
