@@ -7,15 +7,6 @@
   "homepage": "https://rehber360.com",
   "private": true,
   "type": "module",
-  "main": "dist/electron/main.js",
-  "pkg": {
-    "assets": [
-      "dist/spa/*"
-    ],
-    "scripts": [
-      "dist/server/**/*.js"
-    ]
-  },
   "overrides": {
     "prismjs": "^1.30.0"
   },
@@ -24,12 +15,7 @@
     "build": "npm run build:client && npm run build:server",
     "build:client": "vite build",
     "build:server": "vite build --config vite.config.server.ts",
-    "build:electron": "tsc -p tsconfig.electron.json",
     "start": "node dist/server/node-build.mjs",
-    "electron:dev": "npm run build:electron && concurrently \"npm run dev\" \"wait-on http://localhost:5000 && electron .\"",
-    "electron:build": "npm run build:client && npm run build:server && npm run build:electron && electron-builder",
-    "electron:build:win": "npm run build:client && npm run build:server && npm run build:electron && electron-builder --win",
-    "electron:build:dir": "npm run build:client && npm run build:server && npm run build:electron && electron-builder --dir",
     "test": "vitest --run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
@@ -57,10 +43,6 @@
     "cors": "^2.8.5",
     "csrf-csrf": "^4.0.3",
     "dotenv": "^17.2.1",
-    "electron-is-dev": "^3.0.1",
-    "electron-log": "^5.4.3",
-    "electron-store": "^11.0.2",
-    "electron-updater": "^6.6.2",
     "express": "^5.1.0",
     "express-rate-limit": "^8.1.0",
     "form-data": "^4.0.4",
@@ -108,7 +90,6 @@
     "@testing-library/user-event": "^14.5.2",
     "@types/better-sqlite3": "^7.6.13",
     "@types/cors": "^2.8.19",
-    "@types/electron-devtools-installer": "^2.2.5",
     "@types/express": "^5.0.3",
     "@types/node": "^24.2.1",
     "@types/react": "^18.3.23",
@@ -122,11 +103,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
-    "concurrently": "^9.2.1",
     "date-fns": "^4.1.0",
-    "electron": "^39.0.0",
-    "electron-builder": "^26.0.12",
-    "electron-devtools-installer": "^4.0.0",
     "eslint": "^9.36.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
@@ -151,7 +128,6 @@
     "typescript": "^5.9.2",
     "vaul": "^1.1.2",
     "vite": "^7.1.2",
-    "vitest": "^3.2.4",
-    "wait-on": "^9.0.1"
+    "vitest": "^3.2.4"
   }
 }
