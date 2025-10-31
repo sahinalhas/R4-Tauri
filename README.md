@@ -93,17 +93,15 @@ Rehber360, eğitim kurumları için geliştirilmiş kapsamlı bir öğrenci rehb
 - **Framer Motion** - Animasyonlar
 
 ### Backend
-- **Node.js + Express.js v5** - Server framework
-- **TypeScript** - Tip güvenli backend
-- **SQLite + better-sqlite3** - Dosya tabanlı veritabanı
-- **Zod** - Runtime type validation
-- **bcryptjs** - Şifre hashleme
-- **Multer** - Dosya yükleme
+- **Tauri 2.0** - Rust-based desktop framework
+- **Rust** - Performant and safe backend
+- **SQLite + Rusqlite** - Dosya tabanlı veritabanı
+- **Tauri Commands** - Frontend-backend communication
+- **Native APIs** - File system, notifications, auto-update
 
 ### AI Entegrasyonları
 - **Gemini API** - Primary AI provider
-- **OpenAI API** - Alternatif AI sağlayıcı
-- **Ollama** - Yerel, gizlilik odaklı AI (önerilen)
+- **Tauri HTTP Client** - Secure API communication
 
 ### Veritabanı ve Veri
 - **SQLite** - Ana veritabanı (database.db)
@@ -115,35 +113,47 @@ Rehber360, eğitim kurumları için geliştirilmiş kapsamlı bir öğrenci rehb
 ## 📦 Kurulum
 
 ### Gereksinimler
-- Node.js 18+ (Replit otomatik yükler)
-- NPM/Yarn (Replit otomatik yönetir)
+- **Node.js 18+** - Frontend build için
+- **Rust** - Tauri backend için
+- **Platform-specific dependencies**:
+  - Windows: Visual Studio C++ Build Tools
+  - macOS: Xcode Command Line Tools
+  - Linux: GTK, WebKit, libayatana-appindicator
 
 ### Hızlı Başlangıç
 
-1. **Projeyi Klonlayın veya Fork'layın**
+1. **Projeyi Klonlayın**
    ```bash
-   # Replit üzerinde "Fork" butonuna basın
+   git clone <repository-url>
+   cd rehber360
    ```
 
-2. **Bağımlılıkları Yükleyin**
+2. **Frontend Bağımlılıklarını Yükleyin**
    ```bash
    npm install
    ```
 
-3. **Ortam Değişkenlerini Ayarlayın**
-   - Replit Secrets aracını kullanarak API anahtarlarınızı ekleyin:
-     - `GEMINI_API_KEY` (önerilen)
-     - `OPENAI_API_KEY` (opsiyonel)
-     - `SESSION_SECRET` (otomatik oluşturulur)
-
-4. **Uygulamayı Başlatın**
+3. **Rust ve Tauri CLI Kurulumu**
    ```bash
-   npm run dev
+   # Rust kurulumu (rustup)
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+   
+   # Tauri CLI kurulumu
+   cargo install tauri-cli
    ```
-   veya Replit "Run" butonuna basın
 
-5. **İlk Kullanıcıyı Oluşturun**
-   - `/register` sayfasından ilk admin hesabını oluşturun
+4. **Uygulama Ayarları**
+   - İlk çalıştırmada uygulama, setup wizard'ı açacaktır
+   - API anahtarlarınızı güvenli bir şekilde ayarlayın:
+     - `GEMINI_API_KEY` (önerilen)
+
+5. **Development Modunda Çalıştır**
+   ```bash
+   npm run tauri:dev
+   ```
+
+6. **İlk Kullanıcıyı Oluşturun**
+   - Uygulama açılınca `/register` sayfasından ilk admin hesabını oluşturun
    - İlk kayıt otomatik olarak "Admin" rolü alır
 
 ## 🚀 Kullanım
@@ -153,19 +163,10 @@ Rehber360, eğitim kurumları için geliştirilmiş kapsamlı bir öğrenci rehb
 **Ayarlar > AI Ayarları** sayfasından:
 
 1. **Gemini (Önerilen)**
-   - API Key: Replit Secrets'a `GEMINI_API_KEY` ekleyin
+   - API Key: Uygulama içi ayarlardan `GEMINI_API_KEY` ekleyin
    - Model: `gemini-1.5-flash` (hızlı) veya `gemini-1.5-pro` (gelişmiş)
    - Ücretsiz tier: 15 request/minute
-
-2. **Ollama (En Güvenli - Yerel)**
-   - Yerel sunucuda Ollama kurulumu gerekir
-   - Model: `llama3`, `mistral`, vs.
-   - Tamamen ücretsiz ve gizlilik odaklı
-
-3. **OpenAI (Opsiyonel)**
-   - API Key: Replit Secrets'a `OPENAI_API_KEY` ekleyin
-   - Model: `gpt-4o-mini` veya `gpt-4o`
-   - Ücretli servis
+   - API anahtarı Tauri Store ile güvenli bir şekilde saklanır
 
 ### Öğrenci Ekleme
 
@@ -247,19 +248,35 @@ Rehber360, eğitim kurumları için geliştirilmiş kapsamlı bir öğrenci rehb
 - **Background Processing**: Arka plan görevleri
 - **Analytics Caching**: 10 dakikalık analitik önbellek
 
-## 🔄 Deployment
+## 🔄 Build ve Dağıtım
 
-### Replit Deployment
-1. Replit "Deploy" sekmesine gidin
-2. "Deploy" butonuna tıklayın
-3. Otomatik build ve production deployment
-4. Port 3000 üzerinden yayına alınır
+### Desktop Uygulama Build
+
+**Development Build:**
+```bash
+npm run tauri:dev
+```
+
+**Production Build:**
+```bash
+npm run tauri:build
+```
+
+Build edilen dosyalar:
+- **Windows**: `src-tauri/target/release/bundle/msi/Rehber360_1.0.0_x64_en-US.msi`
+- **macOS**: `src-tauri/target/release/bundle/dmg/Rehber360_1.0.0_x64.dmg`
+- **Linux**: `src-tauri/target/release/bundle/deb/rehber360_1.0.0_amd64.deb`
+
+### Auto-Update Sistemi
+
+Tauri'nin yerleşik auto-update sistemi ile otomatik güncellemeler:
+1. Yeni versiyon yayınlandığında uygulama otomatik kontrol eder
+2. Kullanıcıya bildirim gönderilir
+3. Tek tıkla güncelleme yapılır
 
 ### Environment Variables
-Production için Replit Secrets'da ayarlayın:
-- `GEMINI_API_KEY`
-- `OPENAI_API_KEY` (opsiyonel)
-- `SESSION_SECRET` (otomatik)
+API anahtarları uygulama içi ayarlardan yönetilir (Tauri Store)
+- `GEMINI_API_KEY` - AI özellikleri için
 
 ## 🗄️ Veritabanı Yönetimi
 
@@ -342,9 +359,10 @@ Bu proje özel bir eğitim projesidir. Ticari kullanım için lütfen iletişime
 ### Proje Yapısı
 ```
 /client         - React frontend
-/server         - Express backend
+/src-tauri      - Rust backend (Tauri)
 /shared         - Ortak tipler ve constants
 /public         - Static dosyalar
+/src            - TypeScript feature modules
 ```
 
 ### Kod Standartları
@@ -406,5 +424,5 @@ npm run test:e2e
 
 **Geliştirilme Tarihi**: 2024  
 **Versiyon**: 2.0.0  
-**Platform**: Replit  
-**Çalışma Ortamı**: Node.js 20 + Vite + SQLite
+**Platform**: Tauri Desktop (Windows, macOS, Linux)  
+**Çalışma Ortamı**: Rust + Tauri 2.0 + React + Vite + SQLite
