@@ -198,8 +198,26 @@ export const tauriApi = {
       });
     },
 
-    updateSession: async (id: string, session: Partial<CounselingSession>): Promise<void> => {
-      return await invoke<void>('update_counseling_session', { id, session });
+    updateSession: async (
+      id: string,
+      updates: {
+        sessionType?: string;
+        groupName?: string;
+        topic?: string;
+        detailedNotes?: string;
+        followUpNeeded?: boolean;
+        completed?: boolean;
+      }
+    ): Promise<void> => {
+      return await invoke<void>('update_counseling_session', {
+        id,
+        session_type: updates.sessionType,
+        group_name: updates.groupName,
+        topic: updates.topic,
+        detailed_notes: updates.detailedNotes,
+        follow_up_needed: updates.followUpNeeded,
+        completed: updates.completed,
+      });
     },
 
     deleteSession: async (id: string): Promise<void> => {
@@ -253,8 +271,26 @@ export const tauriApi = {
       return await invoke<ExamResult[]>('get_student_exam_results_by_type', { student_id: studentId, exam_type: examType });
     },
 
-    updateExamResult: async (id: string, result: Partial<ExamResult>): Promise<void> => {
-      return await invoke<void>('update_exam_result', { id, result });
+    updateExamResult: async (
+      id: string,
+      updates: {
+        examName?: string;
+        examDate?: string;
+        totalScore?: number;
+        percentileRank?: number;
+        counselorNotes?: string;
+        goalsMet?: boolean;
+      }
+    ): Promise<void> => {
+      return await invoke<void>('update_exam_result', {
+        id,
+        exam_name: updates.examName,
+        exam_date: updates.examDate,
+        total_score: updates.totalScore,
+        percentile_rank: updates.percentileRank,
+        counselor_notes: updates.counselorNotes,
+        goals_met: updates.goalsMet,
+      });
     },
 
     deleteExamResult: async (id: string): Promise<void> => {

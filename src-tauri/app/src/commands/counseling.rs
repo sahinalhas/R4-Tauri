@@ -101,9 +101,43 @@ pub async fn create_counseling_session(
 pub async fn update_counseling_session(
     pool: State<'_, SqlitePool>,
     id: String,
-    session: CounselingSession,
+    session_type: Option<String>,
+    group_name: Option<String>,
+    topic: Option<String>,
+    detailed_notes: Option<String>,
+    follow_up_needed: Option<bool>,
+    completed: Option<bool>,
 ) -> Result<(), String> {
-    CounselingRepository::update_session(pool.inner(), &id, session)
+    use chrono::Utc;
+
+    // Fetch existing session
+    let mut existing = CounselingRepository::get_session_by_id(pool.inner(), &id)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    // Apply updates
+    if let Some(val) = session_type {
+        existing.sessionType = val;
+    }
+    if let Some(val) = group_name {
+        existing.groupName = Some(val);
+    }
+    if let Some(val) = topic {
+        existing.topic = val;
+    }
+    if let Some(val) = detailed_notes {
+        existing.detailedNotes = Some(val);
+    }
+    if let Some(val) = follow_up_needed {
+        existing.followUpNeeded = val;
+    }
+    if let Some(val) = completed {
+        existing.completed = val;
+    }
+
+    existing.updated_at = Utc::now().to_rfc3339();
+
+    CounselingRepository::update_session(pool.inner(), &id, existing)
         .await
         .map_err(|e| e.to_string())
 }

@@ -104,9 +104,43 @@ pub async fn get_student_exam_results_by_type(
 pub async fn update_exam_result(
     pool: State<'_, SqlitePool>,
     id: String,
-    result: ExamResult,
+    exam_name: Option<String>,
+    exam_date: Option<String>,
+    total_score: Option<f64>,
+    percentile_rank: Option<f64>,
+    counselor_notes: Option<String>,
+    goals_met: Option<bool>,
 ) -> Result<(), String> {
-    AcademicRepository::update_exam_result(pool.inner(), &id, result)
+    use chrono::Utc;
+
+    // Fetch existing result
+    let mut existing = AcademicRepository::get_exam_result_by_id(pool.inner(), &id)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    // Apply updates
+    if let Some(val) = exam_name {
+        existing.examName = val;
+    }
+    if let Some(val) = exam_date {
+        existing.examDate = val;
+    }
+    if let Some(val) = total_score {
+        existing.totalScore = Some(val);
+    }
+    if let Some(val) = percentile_rank {
+        existing.percentileRank = Some(val);
+    }
+    if let Some(val) = counselor_notes {
+        existing.counselorNotes = Some(val);
+    }
+    if let Some(val) = goals_met {
+        existing.goalsMet = val;
+    }
+
+    existing.updated_at = Utc::now().to_rfc3339();
+
+    AcademicRepository::update_exam_result(pool.inner(), &id, existing)
         .await
         .map_err(|e| e.to_string())
 }
