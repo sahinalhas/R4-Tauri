@@ -49,6 +49,9 @@ pub enum AppError {
 
     #[error("Internal server error: {0}")]
     InternalError(String),
+    
+    #[error("Internal error: {0}")]
+    Internal(String),
 }
 
 impl From<std::io::Error> for AppError {

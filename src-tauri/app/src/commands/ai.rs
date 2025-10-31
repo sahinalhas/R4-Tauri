@@ -95,21 +95,79 @@ pub async fn get_ai_suggestion_statistics(
 
 #[tauri::command]
 pub async fn analyze_student_profile(
-    _pool: State<'_, SqlitePool>,
+    pool: State<'_, SqlitePool>,
     student_id: String,
-) -> Result<String, String> {
-    // Placeholder for AI analysis - would integrate with OpenAI/Gemini/Ollama
-    Ok(format!("AI analysis for student {} would be performed here", student_id))
+    ai_config: rehber360_core::services::config_service::AiProviderConfig,
+) -> Result<rehber360_core::services::ai_service::AiAnalysisResponse, String> {
+    use rehber360_core::{repositories::StudentRepository, services::ai_service::AiService};
+
+    // Get student data
+    let student = StudentRepository::get_by_id(pool.inner(), &student_id)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    // Create student data summary
+    let student_summary = serde_json::to_string_pretty(&student)
+        .map_err(|e| e.to_string())?;
+
+    // Call AI service
+    let ai_service = AiService::new(ai_config);
+    let analysis = ai_service
+        .analyze_student_profile(&student_summary)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    Ok(analysis)
 }
 
 #[tauri::command]
 pub async fn generate_counseling_recommendations(
-    _pool: State<'_, SqlitePool>,
+    pool: State<'_, SqlitePool>,
     student_id: String,
+    ai_config: rehber360_core::services::config_service::AiProviderConfig,
 ) -> Result<Vec<String>, String> {
-    // Placeholder for AI recommendations
-    Ok(vec![
-        format!("Recommendation 1 for student {}", student_id),
-        "Recommendation 2".to_string(),
-    ])
+    use rehber360_core::{repositories::StudentRepository, services::ai_service::AiService};
+
+    // Get student data
+    let student = StudentRepository::get_by_id(pool.inner(), &student_id)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    // Create student data summary
+    let student_summary = serde_json::to_string_pretty(&student)
+        .map_err(|e| e.to_string())?;
+
+    // Call AI service
+    let ai_service = AiService::new(ai_config);
+    let recommendations = ai_service
+        .generate_recommendations(&student_summary)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    Ok(recommendations)
+}
+
+#[tauri::command]
+pub async fn chat_with_ai(
+    messages: Vec<rehber360_core::services::ai_service::ChatMessage>,
+    ai_config: rehber360_core::services::config_service::AiProviderConfig,
+) -> Result<String, String> {
+    use rehber360_core::services::ai_service::AiService;
+
+    let ai_service = AiService::new(ai_config);
+    let response = ai_service
+        .chat(messages)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    Ok(response)
+}
+
+#[tauri::command]
+pub async fn test_ai_connection(
+    ai_config: rehber360_core::services::config_service::AiProviderConfig,
+) -> Result<bool, String> {
+    rehber360_core::services::ai_service::test_ai_connection(ai_config)
+        .await
+        .map_err(|e| e.to_string())
 }

@@ -16,6 +16,7 @@ thiserror = { workspace = true }
 log = { workspace = true }
 uuid = { workspace = true }
 anyhow = { workspace = true }
+base64 = "0.22"
 
 [dev-dependencies]
 env_logger = { workspace = true }

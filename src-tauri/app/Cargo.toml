@@ -18,6 +18,8 @@ serde_json = { workspace = true }
 tokio = { workspace = true }
 log = { workspace = true }
 env_logger = { workspace = true }
+chrono = { workspace = true }
+sqlx = { workspace = true }
 
 [features]
 default = ["custom-protocol"]

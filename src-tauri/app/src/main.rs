@@ -111,6 +111,19 @@ async fn main() {
             notification::update_task_next_run,
             notification::delete_notification,
             notification::send_native_notification,
+            // Settings commands
+            settings::get_settings,
+            settings::save_settings,
+            settings::update_ai_provider,
+            // AI service commands
+            ai::chat_with_ai,
+            ai::test_ai_connection,
+            // File commands
+            file::upload_file,
+            file::download_file,
+            file::delete_file,
+            file::get_file_list,
+            file::open_file_in_explorer,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
