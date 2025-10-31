@@ -41,11 +41,58 @@
         "minHeight": 768,
         "resizable": true,
         "fullscreen": false,
-        "center": true
+        "center": true,
+        "label": "main",
+        "visible": true
       }
     ],
     "security": {
       "csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:"
+    },
+    "trayIcon": {
+      "iconPath": "icons/icon.png",
+      "iconAsTemplate": false,
+      "menuOnLeftClick": false,
+      "tooltip": "Rehber360"
+    },
+    "withGlobalTauri": true
+  },
+  "plugins": {
+    "notification": {
+      "identifier": "com.rehber360.app"
+    },
+    "updater": {
+      "active": false,
+      "endpoints": [],
+      "dialog": true,
+      "pubkey": "",
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  },
+  "_updater_setup_required": {
+    "_comment": "IMPORTANT: Auto-updater requires additional setup before activation",
+    "_steps": [
+      "1. Generate ed25519 key pair: `tauri signer generate -w ~/.tauri/rehber360.key`",
+      "2. Copy public key to 'pubkey' field above",
+      "3. Create updater manifest JSON (not GitHub REST API)",
+      "4. Host manifest at a stable URL (e.g., https://releases.rehber360.com/latest.json)",
+      "5. Sign release bundles with private key during build",
+      "6. Update 'endpoints' to point to manifest URL",
+      "7. Set 'active' to true",
+      "8. Test update flow end-to-end before production"
+    ],
+    "_manifest_format": {
+      "version": "2.0.1",
+      "notes": "Release notes in markdown",
+      "pub_date": "2025-01-15T10:00:00Z",
+      "platforms": {
+        "windows-x86_64": {
+          "signature": "generated_by_tauri_signer",
+          "url": "https://github.com/rehber360/rehber360/releases/download/v2.0.1/Rehber360_2.0.1_x64-setup.nsis.zip"
+        }
+      }
     }
   }
 }
