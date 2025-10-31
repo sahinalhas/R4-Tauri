@@ -13,9 +13,6 @@ import Index from "./pages/Index";
 import Students from "./pages/Students";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import { ElectronUpdateNotification } from "./components/ElectronUpdateNotification";
-import { apiClient } from "./lib/api/core/client";
-import { isElectron } from "./lib/utils/electron";
 
 const StudentProfile = lazy(() => import("./pages/StudentProfile/StudentProfile"));
 const CounselingSessions = lazy(() => import("./pages/CounselingSessions"));
@@ -54,13 +51,6 @@ function PrefetchWrapper() {
 const App = () => {
   useEffect(() => {
     const cleanup = setupGlobalErrorHandlers();
-    
-    if (isElectron()) {
-      apiClient.initialize().catch((error) => {
-        console.error('Failed to initialize Electron API client:', error);
-      });
-    }
-    
     return cleanup;
   }, []);
 
@@ -76,7 +66,6 @@ const App = () => {
         <AuthProvider>
           <TooltipProvider>
             <Toaster />
-            <ElectronUpdateNotification />
             <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
               <PrefetchWrapper />
               <Routes>

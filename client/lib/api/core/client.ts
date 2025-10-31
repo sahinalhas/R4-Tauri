@@ -12,7 +12,6 @@ import {
   showErrorToast as displayErrorToast 
 } from "./error-handler";
 import { ApiError, isApiErrorResponse } from "../../types/api-types";
-import { getBackendUrl, isElectron, updateBackendUrlCache } from "../../utils/electron";
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
@@ -31,9 +30,7 @@ export interface ApiResponse<T> {
 }
 
 class ApiClient {
-  private baseUrl: string = '';
-  private initialized: boolean = false;
-  private initPromise: Promise<void> | null = null;
+  private baseUrl: string;
 
   private baseHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -44,48 +41,7 @@ class ApiClient {
   constructor() {
     // Modern CSRF protection uses SameSite cookies
     // No need for manual CSRF token handling
-    
-    // Initialize base URL synchronously for web
-    if (!isElectron()) {
-      this.baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-      this.initialized = true;
-    }
-  }
-
-  /**
-   * Initialize API client with backend URL
-   * Call this on app startup for Electron apps
-   */
-  async initialize(): Promise<void> {
-    if (this.initialized) return;
-    
-    // Prevent multiple simultaneous initialization
-    if (this.initPromise) {
-      return this.initPromise;
-    }
-
-    this.initPromise = (async () => {
-      try {
-        await updateBackendUrlCache();
-        this.baseUrl = await getBackendUrl();
-        this.initialized = true;
-      } catch (error) {
-        console.error('Failed to initialize API client:', error);
-        this.baseUrl = 'http://localhost:3000';
-        this.initialized = true;
-      }
-    })();
-
-    return this.initPromise;
-  }
-
-  /**
-   * Ensure client is initialized before making requests
-   */
-  private async ensureInitialized(): Promise<void> {
-    if (!this.initialized) {
-      await this.initialize();
-    }
+    this.baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
   }
 
   /**
@@ -107,8 +63,6 @@ class ApiClient {
     config: ApiRequestConfig<TBody> = {},
     isRetry = false
   ): Promise<TResponse> {
-    // Ensure API client is initialized (especially for Electron)
-    await this.ensureInitialized();
 
     const {
       method = 'GET',
