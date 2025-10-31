@@ -1,0 +1,24 @@
+[package]
+name = "rehber360"
+version = "2.0.0"
+description = "Rehber360 - Modern Öğrenci Rehberlik Sistemi"
+authors = ["Rehber360 Team"]
+license = "MIT"
+repository = ""
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2.1", features = [] }
+
+[dependencies]
+rehber360-core = { path = "../core" }
+tauri = { version = "2.1", features = ["protocol-asset"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
