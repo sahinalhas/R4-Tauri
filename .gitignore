@@ -59,6 +59,10 @@ backups/
 # Uploaded Assets
 attached_assets/
 
+# Tauri
+src-tauri/target/
+*.pdb
+
 # Python
 __pycache__/
 *.py[cod]
