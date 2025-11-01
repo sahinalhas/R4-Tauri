@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v2.0.1)'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -15,11 +20,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - platform: 'windows-latest'
+            args: ''
           - platform: 'macos-latest'
             args: '--target universal-apple-darwin'
           - platform: 'ubuntu-22.04'
-            args: ''
-          - platform: 'windows-latest'
             args: ''
 
     runs-on: ${{ matrix.platform }}
@@ -28,16 +33,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install dependencies (Ubuntu only)
-        if: matrix.platform == 'ubuntu-22.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
+          node-version: '20'
           cache: 'npm'
 
       - name: Setup Rust
@@ -49,6 +48,19 @@ jobs:
         uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
+          cache-on-failure: true
+
+      - name: Install dependencies (Ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-dev \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libssl-dev
 
       - name: Install frontend dependencies
         run: npm ci
@@ -60,26 +72,42 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
+          projectPath: src-tauri/app
           tagName: ${{ github.ref_name }}
           releaseName: 'Rehber360 ${{ github.ref_name }}'
           releaseBody: |
             ## 🎉 Rehber360 ${{ github.ref_name }}
             
-            ### Yenilikler ve İyileştirmeler
-            Bu sürümde yapılan değişiklikler için [CHANGELOG.md](https://github.com/rehber360/rehber360/blob/main/CHANGELOG.md) dosyasına bakınız.
+            ### 📦 Kurulum Dosyaları
+            - **Windows**: 
+              - `Rehber360_*_x64-setup.exe` (NSIS Installer - Önerilen)
+              - `Rehber360_*_x64_tr-TR.msi` (MSI Installer)
+            - **macOS**: 
+              - `Rehber360_*.dmg` (Universal Binary - Apple Silicon + Intel)
+            - **Linux**: 
+              - `Rehber360_*.AppImage` (Tüm dağıtımlar için)
+              - `Rehber360_*.deb` (Ubuntu/Debian)
             
-            ### İndirme
-            - **Windows**: `.msi` veya `.exe` dosyasını indirin
-            - **macOS**: `.dmg` dosyasını indirin
-            - **Linux**: `.AppImage` veya `.deb` dosyasını indirin
+            ### 🚀 Kurulum Adımları
+            1. İşletim sisteminize uygun dosyayı indirin
+            2. Windows: Setup.exe dosyasını çalıştırın
+            3. macOS: DMG dosyasını açıp uygulamayı Applications klasörüne sürükleyin
+            4. Linux: AppImage'e çalıştırma izni verin veya .deb paketini kurun
             
-            ### Kurulum Notları
-            - Windows kullanıcıları için: İlk kurulumda Microsoft Edge WebView2 otomatik olarak indirilecektir
-            - macOS kullanıcıları için: "Güvenilmeyen geliştirici" uyarısı alırsanız Sistem Ayarları > Gizlilik ve Güvenlik'ten uygulamayı açın
+            ### 🔐 Güvenlik Notları
+            - **Windows**: İlk kurulumda Microsoft Edge WebView2 otomatik indirilecektir
+            - **Windows Defender**: "Bilinmeyen yayımcı" uyarısı alabilirsiniz - "Daha fazla bilgi" → "Yine de çalıştır"
+            - **macOS Gatekeeper**: Sistem Ayarları → Gizlilik ve Güvenlik → "Yine de Aç"
+            - **Linux**: `chmod +x Rehber360_*.AppImage` komutuyla çalıştırma izni verin
+            
+            ### 📋 Sistem Gereksinimleri
+            - **Windows**: Windows 10/11 (64-bit)
+            - **macOS**: macOS 10.15 (Catalina) veya üzeri
+            - **Linux**: Ubuntu 20.04+, Debian 11+, Fedora 35+ (WebKit2GTK 4.1)
             
             ---
             
-            **Tam sürüm notları**: [GitHub Releases](https://github.com/rehber360/rehber360/releases)
+            **Tam sürüm notları**: [CHANGELOG.md](https://github.com/rehber360/rehber360/blob/main/CHANGELOG.md)
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}

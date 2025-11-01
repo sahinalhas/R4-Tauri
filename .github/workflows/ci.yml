@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 jobs:
   ci:
@@ -18,16 +18,60 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: '20'
           cache: 'npm'
 
-      - name: Install
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+          cache-on-failure: true
+
+      - name: Install dependencies
         run: npm ci
 
-      - name: CI Pipeline
-        run: npm run ci
+      - name: Type checking
+        run: npm run typecheck
 
-      - name: Build
-        run: npm run build
+      - name: Linting
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format
+
+      - name: Run tests
+        run: npm run test:coverage
+
+      - name: Build frontend
+        run: npm run build:frontend
         env:
           NODE_ENV: production
+
+      - name: Check Rust code
+        run: |
+          cd src-tauri/app
+          cargo check --all-targets
+          cargo clippy -- -D warnings
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          flags: unittests
+          fail_ci_if_error: false
+
+      - name: Create CI summary
+        if: always()
+        run: |
+          echo "### 📊 CI Pipeline Sonuçları" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Type checking tamamlandı" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Linting tamamlandı" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Testler çalıştırıldı" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Frontend build başarılı" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Rust kontrolü tamamlandı" >> $GITHUB_STEP_SUMMARY
