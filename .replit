@@ -22,11 +22,12 @@ name = "dev-server"
 author = "agent"
 
 [workflows.workflow.metadata]
-outputType = "vnc"
+outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev"
+waitForPort = 5000
 
 [[ports]]
 localPort = 5000
