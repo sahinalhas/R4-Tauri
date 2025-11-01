@@ -4,9 +4,9 @@
   "identifier": "com.rehber360.app",
   "build": {
     "beforeDevCommand": "vite",
-    "beforeBuildCommand": "npm run build:frontend",
+    "beforeBuildCommand": "cd ../.. && npm run build:frontend",
     "devUrl": "http://localhost:5000",
-    "frontendDist": "../dist/client"
+    "frontendDist": "../../dist/client"
   },
   "bundle": {
     "active": true,

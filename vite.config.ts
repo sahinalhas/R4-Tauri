@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => ({
   clearScreen: false,
   envPrefix: ["VITE_", "TAURI_"],
   build: {
-    outDir: "dist/spa",
+    outDir: "dist/client",
     minify: mode === 'production' ? 'esbuild' : false,
     target: 'es2021',
     cssCodeSplit: true,
