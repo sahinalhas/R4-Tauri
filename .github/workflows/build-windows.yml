@@ -39,7 +39,10 @@ jobs:
           shared-key: 'windows-build'
 
       - name: Install dependencies
-        run: npm install --force
+        run: npm ci
+
+      - name: Rebuild Rollup with Windows binary
+        run: npm rebuild rollup
 
       - name: Build frontend
         run: npm run build:frontend
