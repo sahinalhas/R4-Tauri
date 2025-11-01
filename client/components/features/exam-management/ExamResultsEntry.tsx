@@ -33,7 +33,7 @@ import type {
   ExamSubject,
   ExamType,
   SubjectResults,
-} from '../../../shared/types/exam-management.types';
+} from '@shared/types/exam-management.types';
 
 interface Student {
   id: string;

@@ -38,7 +38,7 @@ import {
 import { Button } from '@/components/atoms/Button';
 import { Badge } from '@/components/atoms/Badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/organisms/Card';
-import type { ExamSession } from '../../../shared/types/exam-management.types';
+import type { ExamSession } from '@shared/types/exam-management.types';
 
 interface ExamSessionsListProps {
   sessions: ExamSession[];

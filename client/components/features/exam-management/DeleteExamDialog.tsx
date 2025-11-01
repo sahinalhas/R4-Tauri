@@ -9,7 +9,7 @@ import {
   AlertDialogTitle,
 } from '@/components/organisms/AlertDialog';
 import { AlertTriangle } from 'lucide-react';
-import type { ExamSession } from '../../../shared/types/exam-management.types';
+import type { ExamSession } from '@shared/types/exam-management.types';
 
 interface DeleteExamDialogProps {
   open: boolean;

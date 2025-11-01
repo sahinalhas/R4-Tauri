@@ -29,7 +29,7 @@ import {
   Area,
 } from 'recharts';
 import { useTrendAnalysis } from '@/hooks/queries/exams.query-hooks';
-import type { ExamType } from '../../../shared/types/exam-management.types';
+import type { ExamType } from '@shared/types/exam-management.types';
 
 interface TrendAnalysisTabProps {
   examTypes: ExamType[];

@@ -17,7 +17,7 @@ import {
   CardTitle,
 } from '@/components/organisms/Card';
 import { Plus, Loader2 } from 'lucide-react';
-import type { ExamType } from '../../../shared/types/exam-management.types';
+import type { ExamType } from '@shared/types/exam-management.types';
 
 interface QuickExamCreateProps {
   examTypes: ExamType[];

@@ -27,7 +27,7 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import type { ExamSession } from '../../../shared/types/exam-management.types';
+import type { ExamSession } from '@shared/types/exam-management.types';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Sınav adı gereklidir').max(200, 'Sınav adı çok uzun'),

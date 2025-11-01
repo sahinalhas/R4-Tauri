@@ -18,7 +18,7 @@ import {
   Info,
   AlertCircle,
 } from 'lucide-react';
-import type { ExamSession } from '../../../shared/types/exam-management.types';
+import type { ExamSession } from '@shared/types/exam-management.types';
 
 interface ExcelImportDialogProps {
   open: boolean;

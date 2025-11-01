@@ -43,7 +43,7 @@ import { Plus, GraduationCap, CalendarIcon, Trash2, Pencil } from 'lucide-react'
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import type { SchoolExamResult } from '../../../shared/types/exam-management.types';
+import type { SchoolExamResult } from '@shared/types/exam-management.types';
 
 const formSchema = z.object({
   student_id: z.string().min(1, 'Öğrenci seçimi gereklidir'),

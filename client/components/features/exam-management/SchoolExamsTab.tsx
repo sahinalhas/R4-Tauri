@@ -7,7 +7,7 @@ import {
 } from '@/components/organisms/Card';
 import { GraduationCap } from 'lucide-react';
 import { SchoolExamsManagement } from './SchoolExamsManagement';
-import type { SchoolExamResult } from '../../../shared/types/exam-management.types';
+import type { SchoolExamResult } from '@shared/types/exam-management.types';
 
 interface Student {
   id: string;

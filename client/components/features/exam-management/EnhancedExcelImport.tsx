@@ -31,7 +31,7 @@ import {
   AlertTriangle,
   X,
 } from 'lucide-react';
-import type { ExamSession } from '../../../shared/types/exam-management.types';
+import type { ExamSession } from '@shared/types/exam-management.types';
 
 interface EnhancedExcelImportProps {
   open: boolean;

@@ -28,7 +28,7 @@ import {
   LineChart,
   Line,
 } from 'recharts';
-import type { ExamSession } from '../../../shared/types/exam-management.types';
+import type { ExamSession } from '@shared/types/exam-management.types';
 
 interface ExamStatisticsData {
   session_id: string;

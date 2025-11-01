@@ -5,7 +5,7 @@
     "lib": ["ES2021", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
-    "types": ["node"],
+    "types": ["node", "vitest/globals", "@testing-library/jest-dom"],
 
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
@@ -33,14 +33,18 @@
     "paths": {
       "@/*": ["./client/*"],
       "@shared/*": ["./shared/*"],
-      "@/assets/*": ["./client/assets/*"]
+      "@/assets/*": ["./client/assets/*"],
+      "@test/*": ["./test/*"]
     }
   },
   "include": [
     "client/**/*",
     "shared/**/*",
     "src/**/*",
-    "vite.config.ts"
+    "test/**/*",
+    "__tests__/**/*",
+    "vite.config.ts",
+    "vitest.config.ts"
   ],
   "exclude": ["node_modules", "dist"]
 }

@@ -37,7 +37,7 @@ import {
   Radar,
 } from 'recharts';
 import { useSessionComparison } from '@/hooks/queries/exams.query-hooks';
-import type { ExamSession, ExamType, SessionComparison } from '../../../shared/types/exam-management.types';
+import type { ExamSession, ExamType, SessionComparison } from '@shared/types/exam-management.types';
 import { toast } from 'sonner';
 
 interface ComparisonAnalysisTabProps {

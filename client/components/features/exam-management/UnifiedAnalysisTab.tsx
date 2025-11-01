@@ -9,7 +9,7 @@ import type {
   ExamType,
   ExamSession,
   ExamStatistics as ExamStatisticsType,
-} from '../../../shared/types/exam-management.types';
+} from '@shared/types/exam-management.types';
 
 interface UnifiedAnalysisTabProps {
   examTypes: ExamType[];

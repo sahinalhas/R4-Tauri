@@ -50,7 +50,7 @@ import type {
   ExamSession,
   ExamSubject,
   SubjectResults,
-} from '../../../shared/types/exam-management.types';
+} from '@shared/types/exam-management.types';
 
 interface Student {
   id: string;
