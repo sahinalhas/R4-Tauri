@@ -43,8 +43,20 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev
 
+      - name: Clean install (Windows - fix Rollup optional dependencies)
+        if: matrix.platform == 'windows-latest'
+        run: |
+          if (Test-Path node_modules) { Remove-Item -Recurse -Force node_modules }
+          if (Test-Path package-lock.json) { Remove-Item -Force package-lock.json }
+        shell: pwsh
+
       - name: Install npm dependencies
         run: npm install
+
+      - name: Install Rollup native module (Windows fallback)
+        if: matrix.platform == 'windows-latest'
+        run: npm install @rollup/rollup-win32-x64-msvc --no-save
+        continue-on-error: true
 
       - name: Build frontend
         run: npm run build:frontend
