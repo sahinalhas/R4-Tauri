@@ -51,6 +51,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          projectPath: src-tauri/app
           tagName: ${{ github.ref_name }}
           releaseName: 'Rehber360 ${{ github.ref_name }}'
           releaseBody: |
