@@ -38,11 +38,11 @@ jobs:
           cache-on-failure: true
           shared-key: 'windows-build'
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Delete package-lock.json
+        run: Remove-Item -Force package-lock.json -ErrorAction SilentlyContinue
 
-      - name: Rebuild Rollup with Windows binary
-        run: npm rebuild rollup
+      - name: Install dependencies fresh
+        run: npm install
 
       - name: Build frontend
         run: npm run build:frontend
