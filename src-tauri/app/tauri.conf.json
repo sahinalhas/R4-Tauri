@@ -3,8 +3,8 @@
   "version": "2.0.0",
   "identifier": "com.rehber360.app",
   "build": {
-    "beforeDevCommand": "vite",
-    "beforeBuildCommand": "",
+    "beforeDevCommand": "npm --prefix ../.. run dev:vite",
+    "beforeBuildCommand": "npm --prefix ../.. run build:frontend",
     "devUrl": "http://localhost:5000",
     "frontendDist": "../../dist/client"
   },
