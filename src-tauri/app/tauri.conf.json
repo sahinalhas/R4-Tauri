@@ -4,7 +4,7 @@
   "identifier": "com.rehber360.app",
   "build": {
     "beforeDevCommand": "vite",
-    "beforeBuildCommand": "cd ../.. && npm run build:frontend",
+    "beforeBuildCommand": "",
     "devUrl": "http://localhost:5000",
     "frontendDist": "../../dist/client"
   },
